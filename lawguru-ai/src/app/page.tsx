@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { FaArrowRight, FaShieldAlt, FaBolt, FaBrain, FaSearch } from "react-icons/fa";
-import { HiFolderOpen } from "react-icons/hi2";
+import { FaArrowRight, FaShieldAlt, FaBolt, FaBrain, FaSearch, FaFolderOpen } from "react-icons/fa";
 import { GiScales, GiGavel } from "react-icons/gi";
 import { FaLandmark, FaUsers, FaBookOpen } from "react-icons/fa6";
 import Button from "@/components/ui/Button";
@@ -57,7 +56,7 @@ const iracSteps = [
 
 const features = [
   {
-    icon: HiFolderOpen,
+    icon: FaFolderOpen,
     title: "Google Drive Sync",
     desc: "Connect your firm's Drive folder — PDFs, DOCX, Google Docs from the Zambia Law Development Commission, all indexed automatically.",
   },
@@ -152,7 +151,7 @@ export default function HomePage() {
             </Link>
             <Link href="/documents">
               <Button variant="secondary" size="lg">
-                <HiFolderOpen className="w-4 h-4 mr-2" />
+                <FaFolderOpen className="w-4 h-4 mr-2" />
                 Connect Drive
               </Button>
             </Link>

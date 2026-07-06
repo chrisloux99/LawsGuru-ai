@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { HiChatBubbleLeftRight, HiFolderOpen } from "react-icons/hi2";
+import { FaComments, FaFolderOpen } from "react-icons/fa";
 import { GiScales } from "react-icons/gi";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
-  { href: "/chat", label: "Research", icon: HiChatBubbleLeftRight },
-  { href: "/documents", label: "Documents", icon: HiFolderOpen },
+  { href: "/chat", label: "Research", icon: FaComments },
+  { href: "/documents", label: "Documents", icon: FaFolderOpen },
 ];
 
 export default function Navbar() {

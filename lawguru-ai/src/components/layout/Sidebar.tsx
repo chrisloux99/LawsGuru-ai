@@ -3,14 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FaBars, FaTimes, FaShieldAlt } from "react-icons/fa";
-import { HiChatBubbleLeftRight, HiFolderOpen } from "react-icons/hi2";
+import { FaBars, FaTimes, FaShieldAlt, FaComments, FaFolderOpen } from "react-icons/fa";
 import { GiScales } from "react-icons/gi";
 import { cn } from "@/lib/utils";
 
 const links = [
-  { href: "/chat", label: "Research", icon: HiChatBubbleLeftRight },
-  { href: "/documents", label: "Documents", icon: HiFolderOpen },
+  { href: "/chat", label: "Research", icon: FaComments },
+  { href: "/documents", label: "Documents", icon: FaFolderOpen },
 ];
 
 export default function Sidebar() {

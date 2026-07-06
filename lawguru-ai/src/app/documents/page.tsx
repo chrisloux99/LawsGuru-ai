@@ -13,8 +13,8 @@ import {
   FaClock,
   FaShieldAlt,
   FaDatabase,
+  FaFolderOpen,
 } from "react-icons/fa";
-import { HiFolderOpen } from "react-icons/hi2";
 import Sidebar from "@/components/layout/Sidebar";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
@@ -140,7 +140,7 @@ export default function DocumentsPage() {
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-xl bg-copper/10 border border-copper/20 flex items-center justify-center copper-glow">
-                    <HiFolderOpen className="w-6 h-6 text-copper" />
+                    <FaFolderOpen className="w-6 h-6 text-copper" />
                   </div>
                   <div>
                     <h3 className="font-heading text-lg font-bold text-earth-100">
@@ -299,7 +299,7 @@ export default function DocumentsPage() {
 
             {documents.length === 0 ? (
               <Card className="text-center py-12">
-                <HiFolderOpen className="w-12 h-12 text-earth-700 mx-auto mb-4" />
+                <FaFolderOpen className="w-12 h-12 text-earth-700 mx-auto mb-4" />
                 <p className="text-earth-500 font-body mb-2">
                   No documents indexed yet
                 </p>
