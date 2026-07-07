@@ -3,8 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FaBars, FaTimes, FaShieldAlt, FaComments, FaFolderOpen } from "react-icons/fa";
-import { GiScales } from "react-icons/gi";
+import { FaBars, FaTimes, FaShieldAlt, FaComments, FaFolderOpen, FaBalanceScale } from "react-icons/fa";
 import { cn } from "@/lib/utils";
 
 const links = [
@@ -54,7 +53,7 @@ export default function Sidebar() {
         }}
       >
         <div className="flex items-center gap-2 px-3 mb-8 lg:hidden">
-          <GiScales className="w-5 h-5 text-gold" />
+          <FaBalanceScale className="w-5 h-5 text-gold" />
           <span className="font-heading text-lg font-bold">
             LawGuru<span className="text-gold"> AI</span>
           </span>

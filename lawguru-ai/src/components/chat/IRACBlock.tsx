@@ -1,8 +1,7 @@
 "use client";
 
 import Badge from "@/components/ui/Badge";
-import { FaUsers, FaLandmark, FaBookOpen } from "react-icons/fa6";
-import { GiGavel } from "react-icons/gi";
+import { FaUsers, FaLandmark, FaBook, FaGavel } from "react-icons/fa";
 import type { IRACResponse } from "@/types";
 
 interface Props {
@@ -13,7 +12,7 @@ const sections = [
   {
     key: "issue" as const,
     label: "Issue",
-    icon: GiGavel,
+    icon: FaGavel,
     variant: "issue" as const,
     color: "border-yellow-500/20 bg-yellow-500/5",
     dot: "bg-yellow-500",
@@ -22,7 +21,7 @@ const sections = [
   {
     key: "rule" as const,
     label: "Rule",
-    icon: FaBookOpen,
+    icon: FaBook,
     variant: "rule" as const,
     color: "border-blue-500/20 bg-blue-500/5",
     dot: "bg-blue-500",

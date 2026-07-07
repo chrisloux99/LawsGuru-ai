@@ -1,5 +1,4 @@
-import { FaShieldAlt } from "react-icons/fa";
-import { GiScales } from "react-icons/gi";
+import { FaShieldAlt, FaBalanceScale } from "react-icons/fa";
 
 export default function Footer() {
   return (
@@ -11,7 +10,7 @@ export default function Footer() {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3 text-earth-500 text-sm">
             <div className="w-8 h-8 rounded-lg bg-gold/10 border border-gold/20 flex items-center justify-center">
-              <GiScales className="w-4 h-4 text-gold" />
+              <FaBalanceScale className="w-4 h-4 text-gold" />
             </div>
             <div>
               <span className="font-heading font-semibold text-earth-300">

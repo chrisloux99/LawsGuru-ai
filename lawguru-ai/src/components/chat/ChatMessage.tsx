@@ -1,7 +1,6 @@
 "use client";
 
-import { FaUser } from "react-icons/fa";
-import { GiScales } from "react-icons/gi";
+import { FaUser, FaBalanceScale } from "react-icons/fa";
 import { formatDate } from "@/lib/utils";
 import IRACBlock from "./IRACBlock";
 import type { ChatMessage as ChatMessageType } from "@/types";
@@ -25,7 +24,7 @@ export default function ChatMessage({ message }: Props) {
         {isUser ? (
           <FaUser className="w-4 h-4 text-earth-400" />
         ) : (
-          <GiScales className="w-4 h-4 text-gold" />
+          <FaBalanceScale className="w-4 h-4 text-gold" />
         )}
       </div>
 

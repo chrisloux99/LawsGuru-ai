@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FaComments, FaFolderOpen } from "react-icons/fa";
-import { GiScales } from "react-icons/gi";
+import { FaComments, FaFolderOpen, FaBalanceScale } from "react-icons/fa";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
@@ -22,7 +21,7 @@ export default function Navbar() {
           className="flex items-center gap-3 cursor-pointer group"
         >
           <div className="w-9 h-9 rounded-lg bg-gold/10 border border-gold/30 flex items-center justify-center group-hover:bg-gold/20 transition-colors">
-            <GiScales className="w-5 h-5 text-gold" />
+            <FaBalanceScale className="w-5 h-5 text-gold" />
           </div>
           <div className="flex flex-col">
             <span className="font-heading text-xl font-bold text-earth-100 tracking-tight">

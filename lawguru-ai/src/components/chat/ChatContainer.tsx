@@ -2,7 +2,7 @@
 
 import { useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { GiScales, GiGavel, GiSparkles } from "react-icons/gi";
+import { FaBalanceScale, FaGavel, FaMagic } from "react-icons/fa";
 import ChatMessage from "./ChatMessage";
 import ChatInput from "./ChatInput";
 import { useChat } from "./useChat";
@@ -45,7 +45,7 @@ export default function ChatContainer() {
               >
                 {/* Icon */}
                 <div className="w-20 h-20 rounded-2xl bg-gold/10 border border-gold/20 flex items-center justify-center mb-6 mx-auto copper-glow">
-                  <GiScales className="w-10 h-10 text-gold" />
+                  <FaBalanceScale className="w-10 h-10 text-gold" />
                 </div>
 
                 <h2 className="font-heading text-3xl font-extrabold text-earth-100 mb-3">
@@ -64,7 +64,7 @@ export default function ChatContainer() {
                       onClick={() => sendMessage(s)}
                       className="glass-panel p-4 text-left text-sm text-earth-300 hover:text-earth-100 hover:border-copper/30 transition-all duration-300 cursor-pointer group"
                     >
-                      <GiSparkles className="w-3.5 h-3.5 text-copper mb-2 group-hover:text-gold transition-colors" />
+                      <FaMagic className="w-3.5 h-3.5 text-copper mb-2 group-hover:text-gold transition-colors" />
                       {s}
                     </button>
                   ))}
@@ -73,7 +73,7 @@ export default function ChatContainer() {
                 {/* Zambian court hierarchy note */}
                 <div className="mt-8 glass-panel p-3 max-w-sm mx-auto">
                   <p className="text-[11px] text-earth-500 font-body">
-                    <GiGavel className="w-3 h-3 inline mr-1 text-terracotta" />
+                    <FaGavel className="w-3 h-3 inline mr-1 text-terracotta" />
                     Searches Supreme Court, Court of Appeal, High Court, and
                     Local Court decisions
                   </p>
@@ -88,7 +88,7 @@ export default function ChatContainer() {
               {isLoading && (
                 <div className="flex items-center gap-3 text-earth-400">
                   <div className="w-8 h-8 rounded-lg bg-gold/10 border border-gold/20 flex items-center justify-center">
-                    <GiScales className="w-4 h-4 text-gold animate-pulse" />
+                    <FaBalanceScale className="w-4 h-4 text-gold animate-pulse" />
                   </div>
                   <div className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-gold animate-pulse" />

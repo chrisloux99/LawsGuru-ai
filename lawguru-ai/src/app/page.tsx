@@ -2,9 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { FaArrowRight, FaShieldAlt, FaBolt, FaBrain, FaSearch, FaFolderOpen } from "react-icons/fa";
-import { GiScales, GiGavel } from "react-icons/gi";
-import { FaLandmark, FaUsers, FaBookOpen } from "react-icons/fa6";
+import { FaArrowRight, FaShieldAlt, FaBolt, FaBrain, FaSearch, FaFolderOpen, FaBalanceScale, FaGavel, FaLandmark, FaUsers, FaBook } from "react-icons/fa";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import GlowText from "@/components/ui/GlowText";
@@ -22,7 +20,7 @@ const fadeUp = {
 const iracSteps = [
   {
     label: "Issue",
-    icon: GiGavel,
+    icon: FaGavel,
     color: "text-yellow-400",
     bg: "bg-yellow-500/10",
     border: "border-yellow-500/20",
@@ -30,7 +28,7 @@ const iracSteps = [
   },
   {
     label: "Rule",
-    icon: FaBookOpen,
+    icon: FaBook,
     color: "text-blue-400",
     bg: "bg-blue-500/10",
     border: "border-blue-500/20",
@@ -334,7 +332,7 @@ export default function HomePage() {
             <Card copper>
               <div className="flex flex-col sm:flex-row items-start gap-6">
                 <div className="w-14 h-14 rounded-xl bg-gold/10 border border-gold/20 flex items-center justify-center shrink-0">
-                  <GiScales className="w-7 h-7 text-gold" />
+                  <FaBalanceScale className="w-7 h-7 text-gold" />
                 </div>
                 <div>
                   <h3 className="font-heading text-xl font-bold text-earth-100 mb-2">
@@ -390,7 +388,7 @@ export default function HomePage() {
           <motion.div variants={fadeUp} custom={2}>
             <Link href="/chat">
               <Button size="lg" variant="copper">
-                <GiScales className="w-4 h-4 mr-2" />
+                <FaBalanceScale className="w-4 h-4 mr-2" />
                 Launch LawGuru AI
               </Button>
             </Link>
