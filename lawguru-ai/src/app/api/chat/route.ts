@@ -16,29 +16,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Call Python RAG pipeline to get relevant context
-    const pythonDir = path.join(process.cwd(), "python");
-    const { stdout: contextJson } = await execFileAsync(
-      "python",
-      [
-        path.join(pythonDir, "rag_pipeline.py"),
-        "--query",
-        query,
-        "--k",
-        "5",
-      ],
-      { cwd: process.cwd(), timeout: 30000 }
-    );
-
+    // Try Python RAG pipeline for document context (optional)
     let context = "";
     let sources: unknown[] = [];
 
     try {
-      const result = JSON.parse(contextJson);
-      context = result.context || "";
-      sources = result.sources || [];
+      const pythonDir = path.join(process.cwd(), "python");
+      const { stdout: contextJson } = await execFileAsync(
+        "python",
+        [
+          path.join(pythonDir, "rag_pipeline.py"),
+          "--query",
+          query,
+          "--k",
+          "5",
+        ],
+        { cwd: process.cwd(), timeout: 30000 }
+      );
+
+      try {
+        const result = JSON.parse(contextJson);
+        context = result.context || "";
+        sources = result.sources || [];
+      } catch {
+        context = contextJson;
+      }
     } catch {
-      context = contextJson;
+      // RAG pipeline unavailable — proceed without document context
     }
 
     // Build messages for LLM
