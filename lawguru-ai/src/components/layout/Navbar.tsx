@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FaComments, FaFolderOpen, FaBalanceScale } from "react-icons/fa";
+import { FaComments, FaFolderOpen, FaBalanceScale } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
 const navLinks = [

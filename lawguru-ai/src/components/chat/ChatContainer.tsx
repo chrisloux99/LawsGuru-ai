@@ -2,7 +2,7 @@
 
 import { useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { FaBalanceScale, FaGavel, FaMagic } from "react-icons/fa";
+import { FaBalanceScale, FaGavel, FaMagic } from "@/components/icons";
 import ChatMessage from "./ChatMessage";
 import ChatInput from "./ChatInput";
 import { useChat } from "./useChat";

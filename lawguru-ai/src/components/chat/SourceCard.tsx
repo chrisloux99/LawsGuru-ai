@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { FaChevronDown, FaChevronUp, FaFileAlt } from "react-icons/fa";
+import { FaChevronDown, FaChevronUp, FaFileAlt } from "@/components/icons";
 import Badge from "@/components/ui/Badge";
 
 interface Props {

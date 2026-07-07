@@ -1,6 +1,6 @@
 "use client";
 
-import { FaUser, FaBalanceScale } from "react-icons/fa";
+import { FaUser, FaBalanceScale } from "@/components/icons";
 import { formatDate } from "@/lib/utils";
 import IRACBlock from "./IRACBlock";
 import type { ChatMessage as ChatMessageType } from "@/types";

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FaBars, FaTimes, FaShieldAlt, FaComments, FaFolderOpen, FaBalanceScale } from "react-icons/fa";
+import { FaBars, FaTimes, FaShieldAlt, FaComments, FaFolderOpen, FaBalanceScale } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
 const links = [

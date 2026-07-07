@@ -14,7 +14,7 @@ import {
   FaShieldAlt,
   FaDatabase,
   FaFolderOpen,
-} from "react-icons/fa";
+} from "@/components/icons";
 import Sidebar from "@/components/layout/Sidebar";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";

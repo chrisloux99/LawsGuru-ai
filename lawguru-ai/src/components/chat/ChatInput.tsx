@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, KeyboardEvent } from "react";
-import { FaPaperPlane } from "react-icons/fa";
+import { FaPaperPlane } from "@/components/icons";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
 interface Props {

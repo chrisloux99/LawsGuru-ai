@@ -1,4 +1,4 @@
-import { FaShieldAlt, FaBalanceScale } from "react-icons/fa";
+import { FaShieldAlt, FaBalanceScale } from "@/components/icons";
 
 export default function Footer() {
   return (

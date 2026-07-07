@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { FaArrowRight, FaShieldAlt, FaBolt, FaBrain, FaSearch, FaFolderOpen, FaBalanceScale, FaGavel, FaLandmark, FaUsers, FaBook } from "react-icons/fa";
+import { FaArrowRight, FaShieldAlt, FaBolt, FaBrain, FaSearch, FaFolderOpen, FaBalanceScale, FaGavel, FaLandmark, FaUsers, FaBook } from "@/components/icons";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import GlowText from "@/components/ui/GlowText";

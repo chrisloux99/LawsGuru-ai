@@ -1,7 +1,7 @@
 "use client";
 
 import Badge from "@/components/ui/Badge";
-import { FaUsers, FaLandmark, FaBook, FaGavel } from "react-icons/fa";
+import { FaUsers, FaLandmark, FaBook, FaGavel } from "@/components/icons";
 import type { IRACResponse } from "@/types";
 
 interface Props {
