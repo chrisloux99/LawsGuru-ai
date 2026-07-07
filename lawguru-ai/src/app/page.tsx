@@ -1,21 +1,10 @@
-"use client";
-
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { FaArrowRight, FaShieldAlt, FaBolt, FaBrain, FaSearch, FaFolderOpen, FaBalanceScale, FaGavel, FaLandmark, FaUsers, FaBook } from "@/components/icons";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import GlowText from "@/components/ui/GlowText";
 import Footer from "@/components/layout/Footer";
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 30 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: i * 0.1, duration: 0.6, ease: "easeOut" },
-  }),
-};
+import ScrollReveal from "@/components/ui/ScrollReveal";
 
 const iracSteps = [
   {
@@ -89,58 +78,32 @@ export default function HomePage() {
     <div className="min-h-screen kente-bg">
       {/* Hero */}
       <section className="relative flex flex-col items-center justify-center min-h-screen px-6 overflow-hidden">
-        {/* Warm radial glow */}
         <div className="absolute inset-0 bg-gradient-radial from-gold/5 via-transparent to-transparent" />
-        {/* Adinkra dot pattern overlay */}
         <div className="absolute inset-0 adinkra-dots opacity-30" />
-
-        {/* Zambian accent stripe — left edge */}
         <div className="absolute left-0 top-0 bottom-0 w-1 zambian-stripe opacity-60" />
 
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          className="relative z-10 max-w-4xl mx-auto text-center"
-        >
-          {/* Badge */}
-          <motion.div
-            variants={fadeUp}
-            custom={0}
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-copper/20 bg-copper/5 mb-8"
-          >
+        <div className="relative z-10 max-w-4xl mx-auto text-center">
+          <div className="animate-fade-in-up delay-0 inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-copper/20 bg-copper/5 mb-8">
             <FaBolt className="w-3.5 h-3.5 text-copper" />
             <span className="text-xs font-body text-copper-light">
               Built for Zambian legal professionals — powered by turbovec
             </span>
-          </motion.div>
+          </div>
 
-          {/* Main heading */}
-          <motion.h1
-            variants={fadeUp}
-            custom={1}
-            className="font-heading text-5xl sm:text-7xl font-extrabold leading-tight mb-6"
-          >
+          <h1 className="animate-fade-in-up delay-1 font-heading text-5xl sm:text-7xl font-extrabold leading-tight mb-6">
             <span className="text-earth-100">Legal Research,</span>
             <br />
             <GlowText className="text-gold">Decoded</GlowText>
-          </motion.h1>
+          </h1>
 
-          <motion.p
-            variants={fadeUp}
-            custom={2}
-            className="text-lg sm:text-xl text-earth-400 max-w-2xl mx-auto mb-10 font-body leading-relaxed"
-          >
+          <p className="animate-fade-in-up delay-2 text-lg sm:text-xl text-earth-400 max-w-2xl mx-auto mb-10 font-body leading-relaxed">
             AI-powered legal analysis for the Zambian justice system. Ask
             questions about statutes, case law, and constitutional matters — get
             structured IRAC answers with cited sources, all running locally on
             your machine.
-          </motion.p>
+          </p>
 
-          <motion.div
-            variants={fadeUp}
-            custom={3}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4"
-          >
+          <div className="animate-fade-in-up delay-3 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href="/chat">
               <Button size="lg" variant="copper">
                 Start Researching
@@ -153,14 +116,9 @@ export default function HomePage() {
                 Connect Drive
               </Button>
             </Link>
-          </motion.div>
+          </div>
 
-          {/* Zambian laws reference */}
-          <motion.div
-            variants={fadeUp}
-            custom={4}
-            className="mt-12 glass-panel p-4 max-w-lg mx-auto"
-          >
+          <div className="animate-fade-in-up delay-4 mt-12 glass-panel p-4 max-w-lg mx-auto">
             <p className="text-xs text-earth-500 font-body mb-2">
               Optimized for Zambian legal sources:
             </p>
@@ -174,70 +132,39 @@ export default function HomePage() {
                 </span>
               ))}
             </div>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
 
-        {/* Scroll indicator */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.2, duration: 1 }}
-          className="absolute bottom-8 text-earth-600 text-sm"
-        >
-          <motion.div
-            animate={{ y: [0, 8, 0] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
+        <div className="animate-fade-in-up delay-5 absolute bottom-8 text-earth-600 text-sm">
+          <div className="animate-float">
             Scroll to discover
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       </section>
 
       {/* IRAC Explainer */}
       <section className="py-32 px-6 relative">
         <div className="absolute inset-0 adinkra-dots opacity-20" />
         <div className="max-w-5xl mx-auto relative z-10">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
-            className="text-center mb-16"
-          >
-            <motion.p
-              variants={fadeUp}
-              custom={0}
-              className="text-copper text-sm font-body uppercase tracking-[0.2em] mb-4"
-            >
-              The Framework
-            </motion.p>
-            <motion.h2
-              variants={fadeUp}
-              custom={1}
-              className="font-heading text-3xl sm:text-5xl font-extrabold text-earth-100"
-            >
-              Every answer, structured like a{" "}
-              <span className="text-gold">Zambian advocate</span>
-            </motion.h2>
-            <motion.p
-              variants={fadeUp}
-              custom={2}
-              className="text-earth-400 font-body mt-4 max-w-2xl mx-auto"
-            >
-              The IRAC method is the backbone of legal analysis at the Zambia
-              Institute of Advanced Legal Education and law firms across Lusaka.
-            </motion.p>
-          </motion.div>
+          <ScrollReveal>
+            <div className="text-center mb-16">
+              <p className="text-copper text-sm font-body uppercase tracking-[0.2em] mb-4">
+                The Framework
+              </p>
+              <h2 className="font-heading text-3xl sm:text-5xl font-extrabold text-earth-100">
+                Every answer, structured like a{" "}
+                <span className="text-gold">Zambian advocate</span>
+              </h2>
+              <p className="text-earth-400 font-body mt-4 max-w-2xl mx-auto">
+                The IRAC method is the backbone of legal analysis at the Zambia
+                Institute of Advanced Legal Education and law firms across Lusaka.
+              </p>
+            </div>
+          </ScrollReveal>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {iracSteps.map((step, i) => (
-              <motion.div
-                key={step.label}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, margin: "-50px" }}
-                variants={fadeUp}
-                custom={i}
-              >
+              <ScrollReveal key={step.label} delay={i * 100}>
                 <Card className="h-full">
                   <div
                     className={`w-12 h-12 rounded-xl ${step.bg} border ${step.border} flex items-center justify-center mb-4`}
@@ -258,7 +185,7 @@ export default function HomePage() {
                     {step.text}
                   </p>
                 </Card>
-              </motion.div>
+              </ScrollReveal>
             ))}
           </div>
         </div>
@@ -271,39 +198,21 @@ export default function HomePage() {
       <section className="py-32 px-6 relative">
         <div className="absolute inset-0 kente-bg opacity-50" />
         <div className="max-w-5xl mx-auto relative z-10">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
-            className="text-center mb-16"
-          >
-            <motion.p
-              variants={fadeUp}
-              custom={0}
-              className="text-copper text-sm font-body uppercase tracking-[0.2em] mb-4"
-            >
-              Capabilities
-            </motion.p>
-            <motion.h2
-              variants={fadeUp}
-              custom={1}
-              className="font-heading text-3xl sm:text-5xl font-extrabold text-earth-100"
-            >
-              Built for the{" "}
-              <span className="text-terracotta">Zambian bar</span>
-            </motion.h2>
-          </motion.div>
+          <ScrollReveal>
+            <div className="text-center mb-16">
+              <p className="text-copper text-sm font-body uppercase tracking-[0.2em] mb-4">
+                Capabilities
+              </p>
+              <h2 className="font-heading text-3xl sm:text-5xl font-extrabold text-earth-100">
+                Built for the{" "}
+                <span className="text-terracotta">Zambian bar</span>
+              </h2>
+            </div>
+          </ScrollReveal>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {features.map((feat, i) => (
-              <motion.div
-                key={feat.title}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, margin: "-50px" }}
-                variants={fadeUp}
-                custom={i}
-              >
+              <ScrollReveal key={feat.title} delay={i * 100}>
                 <Card glow className="h-full">
                   <div className="w-12 h-12 rounded-xl bg-copper/10 border border-copper/20 flex items-center justify-center mb-4">
                     <feat.icon className="w-6 h-6 text-copper" />
@@ -315,7 +224,7 @@ export default function HomePage() {
                     {feat.desc}
                   </p>
                 </Card>
-              </motion.div>
+              </ScrollReveal>
             ))}
           </div>
         </div>
@@ -324,11 +233,7 @@ export default function HomePage() {
       {/* Zambian Legal Sources */}
       <section className="py-24 px-6">
         <div className="max-w-4xl mx-auto">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
-          >
+          <ScrollReveal>
             <Card copper>
               <div className="flex flex-col sm:flex-row items-start gap-6">
                 <div className="w-14 h-14 rounded-xl bg-gold/10 border border-gold/20 flex items-center justify-center shrink-0">
@@ -356,44 +261,31 @@ export default function HomePage() {
                 </div>
               </div>
             </Card>
-          </motion.div>
+          </ScrollReveal>
         </div>
       </section>
 
       {/* CTA */}
       <section className="py-32 px-6 relative">
         <div className="absolute inset-0 bg-gradient-radial from-copper/5 via-transparent to-transparent" />
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-100px" }}
-          className="max-w-3xl mx-auto text-center relative z-10"
-        >
-          <motion.h2
-            variants={fadeUp}
-            custom={0}
-            className="font-heading text-3xl sm:text-5xl font-extrabold text-earth-100 mb-6"
-          >
-            Ready to decode{" "}
-            <span className="text-gold">Zambian law</span>?
-          </motion.h2>
-          <motion.p
-            variants={fadeUp}
-            custom={1}
-            className="text-earth-400 text-lg mb-10 font-body"
-          >
-            Connect your document library, ask your first question, and see the
-            IRAC framework in action — powered by Zambian legal knowledge.
-          </motion.p>
-          <motion.div variants={fadeUp} custom={2}>
+        <ScrollReveal>
+          <div className="max-w-3xl mx-auto text-center relative z-10">
+            <h2 className="font-heading text-3xl sm:text-5xl font-extrabold text-earth-100 mb-6">
+              Ready to decode{" "}
+              <span className="text-gold">Zambian law</span>?
+            </h2>
+            <p className="text-earth-400 text-lg mb-10 font-body">
+              Connect your document library, ask your first question, and see the
+              IRAC framework in action — powered by Zambian legal knowledge.
+            </p>
             <Link href="/chat">
               <Button size="lg" variant="copper">
                 <FaBalanceScale className="w-4 h-4 mr-2" />
                 Launch LawGuru AI
               </Button>
             </Link>
-          </motion.div>
-        </motion.div>
+          </div>
+        </ScrollReveal>
       </section>
 
       <Footer />

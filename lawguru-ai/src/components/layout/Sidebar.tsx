@@ -3,15 +3,30 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FaBars, FaTimes, FaShieldAlt, FaComments, FaFolderOpen, FaBalanceScale } from "@/components/icons";
+import { FaBars, FaTimes, FaShieldAlt, FaComments, FaFolderOpen, FaBalanceScale, FaPlus, FaTrash } from "@/components/icons";
 import { cn } from "@/lib/utils";
+import type { ChatSession } from "@/types";
 
 const links = [
   { href: "/chat", label: "Research", icon: FaComments },
   { href: "/documents", label: "Documents", icon: FaFolderOpen },
 ];
 
-export default function Sidebar() {
+interface SidebarProps {
+  sessions?: ChatSession[];
+  activeSessionId?: string | null;
+  onNewChat?: () => void;
+  onLoadSession?: (id: string) => void;
+  onDeleteSession?: (id: string) => void;
+}
+
+export default function Sidebar({
+  sessions = [],
+  activeSessionId,
+  onNewChat,
+  onLoadSession,
+  onDeleteSession,
+}: SidebarProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
@@ -80,6 +95,64 @@ export default function Sidebar() {
             );
           })}
         </nav>
+
+        {/* New Chat button */}
+        {pathname === "/chat" && onNewChat && (
+          <button
+            onClick={() => {
+              onNewChat();
+              setOpen(false);
+            }}
+            className="mt-4 flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-body transition-all duration-200 text-earth-400 hover:text-earth-100 hover:bg-surface-tertiary/50 border border-earth-600/30 cursor-pointer"
+          >
+            <FaPlus className="w-3.5 h-3.5" />
+            New Chat
+          </button>
+        )}
+
+        {/* Search History */}
+        {pathname === "/chat" && sessions.length > 0 && (
+          <div className="mt-6 flex-1 overflow-y-auto min-h-0">
+            <h3 className="px-3 mb-2 text-[11px] font-heading font-semibold text-earth-500 uppercase tracking-wider">
+              History
+            </h3>
+            <div className="flex flex-col gap-0.5">
+              {sessions.map((session) => {
+                const isActive = session.id === activeSessionId;
+                return (
+                  <div
+                    key={session.id}
+                    className={cn(
+                      "group flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-body cursor-pointer transition-all duration-200",
+                      isActive
+                        ? "bg-gold/10 text-gold border border-gold/20"
+                        : "text-earth-400 hover:text-earth-100 hover:bg-surface-tertiary/50"
+                    )}
+                    onClick={() => {
+                      onLoadSession?.(session.id);
+                      setOpen(false);
+                    }}
+                  >
+                    <FaComments className="w-3.5 h-3.5 shrink-0" />
+                    <span className="truncate flex-1 text-xs">
+                      {session.title}
+                    </span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDeleteSession?.(session.id);
+                      }}
+                      className="opacity-0 group-hover:opacity-100 p-1 hover:text-terracotta transition-all cursor-pointer"
+                      aria-label="Delete conversation"
+                    >
+                      <FaTrash className="w-3 h-3" />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Zambian-inspired info card */}
         <div className="mt-auto px-3 pb-6">

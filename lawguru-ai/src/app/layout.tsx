@@ -1,5 +1,18 @@
 import type { Metadata } from "next";
+import { Outfit, Work_Sans } from "next/font/google";
 import "./globals.css";
+
+const outfit = Outfit({
+  subsets: ["latin"],
+  variable: "--font-outfit",
+  display: "swap",
+});
+
+const workSans = Work_Sans({
+  subsets: ["latin"],
+  variable: "--font-work-sans",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "LawGuru AI — Zambian Legal Research, Decoded",
@@ -24,7 +37,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className={`dark ${outfit.variable} ${workSans.variable}`}>
       <body className="font-body antialiased">{children}</body>
     </html>
   );

@@ -61,8 +61,8 @@ const config: Config = {
         },
       },
       fontFamily: {
-        heading: ["Outfit", "system-ui", "sans-serif"],
-        body: ["Work Sans", "system-ui", "sans-serif"],
+        heading: ["var(--font-outfit)", "system-ui", "sans-serif"],
+        body: ["var(--font-work-sans)", "system-ui", "sans-serif"],
       },
       boxShadow: {
         glow: "0 0 20px rgba(202,138,4,0.15)",

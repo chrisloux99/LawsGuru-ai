@@ -1,12 +1,87 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { generateId, parseIRACSections } from "@/lib/utils";
-import type { ChatMessage, IRACResponse } from "@/types";
+import type { ChatMessage, ChatSession, IRACResponse } from "@/types";
+
+const STORAGE_KEY = "lawguru-chat-sessions";
+
+function loadSessions(): ChatSession[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return parsed.map((s: ChatSession) => ({
+      ...s,
+      createdAt: new Date(s.createdAt),
+      updatedAt: new Date(s.updatedAt),
+      messages: s.messages.map((m: ChatMessage) => ({
+        ...m,
+        timestamp: new Date(m.timestamp),
+      })),
+    }));
+  } catch {
+    return [];
+  }
+}
+
+function saveSessions(sessions: ChatSession[]) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
+  } catch {
+    // localStorage full or unavailable
+  }
+}
+
+function deriveTitle(messages: ChatMessage[]): string {
+  const firstUser = messages.find((m) => m.role === "user");
+  if (!firstUser) return "New conversation";
+  const text = firstUser.content.trim();
+  return text.length > 60 ? text.slice(0, 60) + "…" : text;
+}
 
 export function useChat() {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [sessions, setSessions] = useState<ChatSession[]>([]);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const initialized = useRef(false);
+
+  // Load sessions from localStorage on mount
+  useEffect(() => {
+    if (initialized.current) return;
+    initialized.current = true;
+    const loaded = loadSessions();
+    setSessions(loaded);
+    if (loaded.length > 0) {
+      setActiveSessionId(loaded[0].id);
+    }
+  }, []);
+
+  // Persist sessions whenever they change
+  useEffect(() => {
+    if (!initialized.current) return;
+    saveSessions(sessions);
+  }, [sessions]);
+
+  const messages = sessions.find((s) => s.id === activeSessionId)?.messages ?? [];
+
+  const startNewChat = useCallback(() => {
+    setActiveSessionId(null);
+  }, []);
+
+  const loadSession = useCallback((sessionId: string) => {
+    setActiveSessionId(sessionId);
+  }, []);
+
+  const deleteSession = useCallback((sessionId: string) => {
+    setSessions((prev) => {
+      const next = prev.filter((s) => s.id !== sessionId);
+      return next;
+    });
+    setActiveSessionId((prev) => (prev === sessionId ? null : prev));
+  }, []);
 
   const sendMessage = useCallback(
     async (content: string) => {
@@ -19,11 +94,46 @@ export function useChat() {
         timestamp: new Date(),
       };
 
-      setMessages((prev) => [...prev, userMsg]);
+      let sessionId = activeSessionId;
+
+      // Create new session if needed
+      if (!sessionId) {
+        sessionId = generateId();
+        const newSession: ChatSession = {
+          id: sessionId,
+          title: deriveTitle([userMsg]),
+          messages: [userMsg],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+        setSessions((prev) => [newSession, ...prev]);
+        setActiveSessionId(sessionId);
+      } else {
+        // Add user message to existing session
+        setSessions((prev) =>
+          prev.map((s) =>
+            s.id === sessionId
+              ? {
+                  ...s,
+                  messages: [...s.messages, userMsg],
+                  updatedAt: new Date(),
+                  title:
+                    s.messages.length === 0
+                      ? deriveTitle([userMsg])
+                      : s.title,
+                }
+              : s
+          )
+        );
+      }
+
       setIsLoading(true);
 
       try {
-        const history = messages.map((m) => ({
+        const currentSession = sessions.find((s) => s.id === sessionId);
+        const historyMessages = currentSession?.messages ?? [];
+
+        const history = historyMessages.map((m) => ({
           role: m.role,
           content: m.content,
         }));
@@ -43,7 +153,13 @@ export function useChat() {
           timestamp: new Date(),
         };
 
-        setMessages((prev) => [...prev, assistantMsg]);
+        setSessions((prev) =>
+          prev.map((s) =>
+            s.id === sessionId
+              ? { ...s, messages: [...s.messages, assistantMsg], updatedAt: new Date() }
+              : s
+          )
+        );
 
         const reader = response.body?.getReader();
         if (!reader) throw new Error("No response stream");
@@ -68,12 +184,22 @@ export function useChat() {
 
             try {
               const parsed = JSON.parse(data);
-              const content = parsed.choices?.[0]?.delta?.content;
-              if (content) {
-                fullText += content;
-                setMessages((prev) =>
-                  prev.map((m) =>
-                    m.id === assistantMsg.id ? { ...m, content: fullText } : m
+              const delta = parsed.choices?.[0]?.delta?.content;
+              if (delta) {
+                fullText += delta;
+                setSessions((prev) =>
+                  prev.map((s) =>
+                    s.id === sessionId
+                      ? {
+                          ...s,
+                          messages: s.messages.map((m) =>
+                            m.id === assistantMsg.id
+                              ? { ...m, content: fullText }
+                              : m
+                          ),
+                          updatedAt: new Date(),
+                        }
+                      : s
                   )
                 );
               }
@@ -93,9 +219,17 @@ export function useChat() {
             sources: [],
             raw: fullText,
           };
-          setMessages((prev) =>
-            prev.map((m) =>
-              m.id === assistantMsg.id ? { ...m, irac } : m
+          setSessions((prev) =>
+            prev.map((s) =>
+              s.id === sessionId
+                ? {
+                    ...s,
+                    messages: s.messages.map((m) =>
+                      m.id === assistantMsg.id ? { ...m, irac } : m
+                    ),
+                    updatedAt: new Date(),
+                  }
+                : s
             )
           );
         }
@@ -107,13 +241,28 @@ export function useChat() {
             "I encountered an error processing your request. Please check that the LLM service is running and try again.",
           timestamp: new Date(),
         };
-        setMessages((prev) => [...prev, errorMsg]);
+        setSessions((prev) =>
+          prev.map((s) =>
+            s.id === sessionId
+              ? { ...s, messages: [...s.messages, errorMsg], updatedAt: new Date() }
+              : s
+          )
+        );
       } finally {
         setIsLoading(false);
       }
     },
-    [messages, isLoading]
+    [activeSessionId, sessions, isLoading]
   );
 
-  return { messages, isLoading, sendMessage };
+  return {
+    messages,
+    sessions,
+    activeSessionId,
+    isLoading,
+    sendMessage,
+    startNewChat,
+    loadSession,
+    deleteSession,
+  };
 }

@@ -64,3 +64,11 @@ export interface SyncProgress {
   total: number;
   message: string;
 }
+
+export interface ChatSession {
+  id: string;
+  title: string;
+  messages: ChatMessage[];
+  createdAt: Date;
+  updatedAt: Date;
+}

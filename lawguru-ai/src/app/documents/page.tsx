@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
 import {
   FaSyncAlt,
   FaTrashAlt,
@@ -21,15 +20,6 @@ import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import type { IndexedDocument, SyncProgress, IndexStatus } from "@/types";
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: i * 0.1, duration: 0.5 },
-  }),
-};
 
 const mimeIcons: Record<string, typeof FaFileAlt> = {
   "application/pdf": FaFileAlt,
@@ -112,13 +102,7 @@ export default function DocumentsPage() {
       <main className="flex-1 lg:ml-64 pt-24 px-4 sm:px-8 pb-12">
         <div className="max-w-5xl mx-auto">
           {/* Header */}
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={fadeUp}
-            custom={0}
-            className="mb-8"
-          >
+          <div className="animate-fade-in-up delay-0 mb-8">
             <h1 className="font-heading text-3xl font-extrabold text-earth-100 mb-2">
               Document Library
             </h1>
@@ -126,16 +110,10 @@ export default function DocumentsPage() {
               Connect your Google Drive to sync Zambian legal documents — case
               law, statutes, contracts, and legal opinions.
             </p>
-          </motion.div>
+          </div>
 
           {/* Connection Card */}
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={fadeUp}
-            custom={1}
-            className="mb-8"
-          >
+          <div className="animate-fade-in-up delay-1 mb-8">
             <Card>
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
@@ -217,17 +195,11 @@ export default function DocumentsPage() {
                 </div>
               )}
             </Card>
-          </motion.div>
+          </div>
 
           {/* Index Status */}
           {indexStatus && (
-            <motion.div
-              initial="hidden"
-              animate="visible"
-              variants={fadeUp}
-              custom={2}
-              className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8"
-            >
+            <div className="animate-fade-in-up delay-2 grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
               {[
                 {
                   label: "Documents",
@@ -255,17 +227,11 @@ export default function DocumentsPage() {
                   </p>
                 </Card>
               ))}
-            </motion.div>
+            </div>
           )}
 
           {/* Data Sovereignty notice */}
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={fadeUp}
-            custom={2.5}
-            className="mb-8"
-          >
+          <div className="animate-fade-in-up delay-2 mb-8">
             <div className="glass-panel p-4 flex items-start gap-3">
               <FaShieldAlt className="w-5 h-5 text-zambia-green shrink-0 mt-0.5" />
               <div>
@@ -279,15 +245,10 @@ export default function DocumentsPage() {
                 </p>
               </div>
             </div>
-          </motion.div>
+          </div>
 
           {/* Document List */}
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={fadeUp}
-            custom={3}
-          >
+          <div className="animate-fade-in-up delay-3">
             <h2 className="font-heading text-xl font-bold text-earth-100 mb-4">
               Indexed Documents
               {documents.length > 0 && (
@@ -311,7 +272,7 @@ export default function DocumentsPage() {
             ) : (
               <div className="space-y-3">
                 {documents.map((doc) => {
-                  const Icon = mimeIcons[doc.mimeType] || File;
+                  const Icon = mimeIcons[doc.mimeType] || FaFile;
                   return (
                     <Card
                       key={doc.driveFileId}
@@ -352,7 +313,7 @@ export default function DocumentsPage() {
                 })}
               </div>
             )}
-          </motion.div>
+          </div>
         </div>
       </main>
     </div>

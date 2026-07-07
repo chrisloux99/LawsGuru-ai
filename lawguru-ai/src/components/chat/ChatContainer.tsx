@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useEffect } from "react";
-import { motion } from "framer-motion";
 import { FaBalanceScale, FaGavel, FaMagic } from "@/components/icons";
 import ChatMessage from "./ChatMessage";
 import ChatInput from "./ChatInput";
@@ -18,7 +17,16 @@ const suggestions = [
 ];
 
 export default function ChatContainer() {
-  const { messages, isLoading, sendMessage } = useChat();
+  const {
+    messages,
+    sessions,
+    activeSessionId,
+    isLoading,
+    sendMessage,
+    startNewChat,
+    loadSession,
+    deleteSession,
+  } = useChat();
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -29,7 +37,13 @@ export default function ChatContainer() {
 
   return (
     <div className="flex min-h-screen">
-      <Sidebar />
+      <Sidebar
+        sessions={sessions}
+        activeSessionId={activeSessionId}
+        onNewChat={startNewChat}
+        onLoadSession={loadSession}
+        onDeleteSession={deleteSession}
+      />
       <main className="flex-1 lg:ml-64 flex flex-col pt-20">
         {/* Messages */}
         <div
@@ -38,11 +52,7 @@ export default function ChatContainer() {
         >
           {messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full max-w-2xl mx-auto text-center">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5 }}
-              >
+              <div className="animate-fade-in-up">
                 {/* Icon */}
                 <div className="w-20 h-20 rounded-2xl bg-gold/10 border border-gold/20 flex items-center justify-center mb-6 mx-auto copper-glow">
                   <FaBalanceScale className="w-10 h-10 text-gold" />
@@ -78,7 +88,7 @@ export default function ChatContainer() {
                     Local Court decisions
                   </p>
                 </div>
-              </motion.div>
+              </div>
             </div>
           ) : (
             <div className="max-w-4xl mx-auto space-y-6">
