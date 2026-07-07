@@ -138,13 +138,54 @@ export function useChat() {
           content: m.content,
         }));
 
-        const response = await fetch("/api/chat", {
+        const apiBase = process.env.NEXT_PUBLIC_LLM_API_BASE || "http://localhost:11434/v1";
+        const apiKey = process.env.NEXT_PUBLIC_LLM_API_KEY || "";
+        const model = process.env.NEXT_PUBLIC_LLM_MODEL || "mimo-v2.5-pro";
+
+        const systemPrompt = `You are LawGuru AI, an expert legal research assistant specializing in Zambian law. You analyze legal questions using the IRAC framework.
+
+For every legal question, you MUST structure your response using these four sections with markdown headers:
+
+## Issue
+Clearly identify the legal question or dispute.
+
+## Rule
+Identify and explain the relevant legal principles, statutes, and case law.
+
+## Application
+Analyze how the rules apply to the specific facts.
+
+## Conclusion
+Provide a clear, reasoned legal conclusion.
+
+Guidelines:
+- Be precise with legal terminology
+- Maintain a professional, objective tone
+- Reference Zambian statutes, case law, and constitutional provisions where relevant`;
+
+        const messages = [
+          { role: "system", content: systemPrompt },
+          ...history,
+          { role: "user", content: content.trim() },
+        ];
+
+        const response = await fetch(`${apiBase}/chat/completions`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ query: content.trim(), history }),
+          headers: {
+            "Content-Type": "application/json",
+            ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
+          },
+          body: JSON.stringify({
+            model,
+            messages,
+            stream: true,
+            temperature: 0.3,
+            max_tokens: 2048,
+            reasoning: { enabled: false },
+          }),
         });
 
-        if (!response.ok) throw new Error("Chat request failed");
+        if (!response.ok) throw new Error(`LLM API error: ${response.status}`);
 
         const assistantMsg: ChatMessage = {
           id: generateId(),
