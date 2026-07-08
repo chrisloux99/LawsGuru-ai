@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Outfit, Work_Sans } from "next/font/google";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -38,7 +39,20 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`dark ${outfit.variable} ${workSans.variable}`}>
-      <body className="font-body antialiased">{children}</body>
+      <body className="font-body antialiased">
+        {children}
+        <Toaster
+          position="bottom-right"
+          toastOptions={{
+            style: {
+              background: "#2A1810",
+              border: "1px solid rgba(74,52,25,0.5)",
+              color: "#F5E6D3",
+              fontFamily: "var(--font-work-sans)",
+            },
+          }}
+        />
+      </body>
     </html>
   );
 }

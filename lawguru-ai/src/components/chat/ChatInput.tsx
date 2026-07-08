@@ -43,6 +43,7 @@ export default function ChatInput({ onSend, isLoading }: Props) {
         onKeyDown={handleKeyDown}
         placeholder="Ask about Zambian law, statutes, case precedent..."
         rows={1}
+        aria-label="Message input"
         className="flex-1 bg-transparent text-sm text-earth-100 placeholder:text-earth-600 font-body resize-none focus:outline-none py-2 px-2 max-h-[200px]"
       />
       <button

@@ -1,5 +1,6 @@
 "use client";
 
+import ReactMarkdown from "react-markdown";
 import Badge from "@/components/ui/Badge";
 import { FaUsers, FaLandmark, FaBook, FaGavel } from "@/components/icons";
 import type { IRACResponse } from "@/types";
@@ -64,8 +65,60 @@ export default function IRACBlock({ irac }: Props) {
               <Icon className={`w-4 h-4 ${iconColor}`} />
               <Badge variant={variant}>{label}</Badge>
             </div>
-            <div className="font-body text-sm leading-relaxed text-earth-200 whitespace-pre-wrap">
-              {content}
+            <div className="font-body text-sm leading-relaxed text-earth-200">
+              <ReactMarkdown
+                components={{
+                  p: ({ children }) => (
+                    <p className="mb-2 last:mb-0 whitespace-pre-wrap">{children}</p>
+                  ),
+                  ul: ({ children }) => (
+                    <ul className="list-disc list-inside mb-2 space-y-1 text-earth-300">
+                      {children}
+                    </ul>
+                  ),
+                  ol: ({ children }) => (
+                    <ol className="list-decimal list-inside mb-2 space-y-1 text-earth-300">
+                      {children}
+                    </ol>
+                  ),
+                  li: ({ children }) => (
+                    <li className="text-sm">{children}</li>
+                  ),
+                  strong: ({ children }) => (
+                    <strong className="font-semibold text-earth-100">{children}</strong>
+                  ),
+                  em: ({ children }) => (
+                    <em className="italic text-earth-300">{children}</em>
+                  ),
+                  code: ({ children, className }) => {
+                    const isInline = !className;
+                    if (isInline) {
+                      return (
+                        <code className="px-1.5 py-0.5 rounded bg-surface-tertiary text-copper text-xs font-mono">
+                          {children}
+                        </code>
+                      );
+                    }
+                    return (
+                      <code className="block p-3 rounded-lg bg-surface-tertiary text-earth-200 text-xs font-mono overflow-x-auto mb-2">
+                        {children}
+                      </code>
+                    );
+                  },
+                  a: ({ href, children }) => (
+                    <a
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-gold hover:text-gold-light underline underline-offset-2 transition-colors"
+                    >
+                      {children}
+                    </a>
+                  ),
+                }}
+              >
+                {content}
+              </ReactMarkdown>
             </div>
           </div>
         );

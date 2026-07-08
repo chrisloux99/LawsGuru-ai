@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import {
   FaSyncAlt,
   FaTrashAlt,
@@ -48,6 +49,22 @@ export default function DocumentsPage() {
   });
   const [documents, setDocuments] = useState<IndexedDocument[]>([]);
   const [indexStatus, setIndexStatus] = useState<IndexStatus | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+
+  // Detect OAuth callback success
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("connected") === "true") {
+      setConnected(true);
+      toast.success("Google Drive connected successfully");
+      // Clean up URL
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+    if (params.get("error")) {
+      toast.error("Failed to connect Google Drive");
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, []);
 
   const handleConnect = async () => {
     window.location.href = "/api/drive/auth";
@@ -75,6 +92,7 @@ export default function DocumentsPage() {
         total: result.total || 0,
         message: `Synced ${result.processed || 0} documents`,
       });
+      toast.success(`Synced ${result.processed || 0} documents`);
     } catch {
       setSyncProgress({
         status: "error",
@@ -82,6 +100,7 @@ export default function DocumentsPage() {
         total: 0,
         message: "Sync failed. Check your Drive connection.",
       });
+      toast.error("Sync failed. Check your Drive connection.");
     } finally {
       setSyncing(false);
     }
@@ -89,17 +108,21 @@ export default function DocumentsPage() {
 
   const handleDelete = async (fileId: string) => {
     try {
-      await fetch(`/api/documents?id=${fileId}`, { method: "DELETE" });
+      const response = await fetch(`/api/documents?id=${fileId}`, { method: "DELETE" });
+      if (!response.ok) throw new Error("Delete failed");
       setDocuments((prev) => prev.filter((d) => d.driveFileId !== fileId));
+      toast.success("Document removed from index");
     } catch {
-      // silent fail
+      toast.error("Failed to delete document");
+    } finally {
+      setDeleteConfirm(null);
     }
   };
 
   return (
     <div className="flex min-h-screen kente-bg">
       <Sidebar />
-      <main className="flex-1 lg:ml-64 pt-24 px-4 sm:px-8 pb-12">
+      <main className="flex-1 lg:ml-64 pt-8 px-4 sm:px-8 pb-12">
         <div className="max-w-5xl mx-auto">
           {/* Header */}
           <div className="animate-fade-in-up delay-0 mb-8">
@@ -273,6 +296,7 @@ export default function DocumentsPage() {
               <div className="space-y-3">
                 {documents.map((doc) => {
                   const Icon = mimeIcons[doc.mimeType] || FaFile;
+                  const isConfirming = deleteConfirm === doc.driveFileId;
                   return (
                     <Card
                       key={doc.driveFileId}
@@ -300,14 +324,34 @@ export default function DocumentsPage() {
                           </div>
                         </div>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDelete(doc.driveFileId)}
-                        aria-label={`Delete ${doc.fileName}`}
-                      >
-                        <FaTrashAlt className="w-4 h-4" />
-                      </Button>
+                      {isConfirming ? (
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDelete(doc.driveFileId)}
+                            className="text-zambia-red hover:text-zambia-red"
+                          >
+                            Confirm
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setDeleteConfirm(null)}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setDeleteConfirm(doc.driveFileId)}
+                          aria-label={`Delete ${doc.fileName}`}
+                        >
+                          <FaTrashAlt className="w-4 h-4" />
+                        </Button>
+                      )}
                     </Card>
                   );
                 })}

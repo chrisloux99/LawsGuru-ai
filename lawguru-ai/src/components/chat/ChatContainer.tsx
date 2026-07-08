@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useEffect } from "react";
-import { FaBalanceScale, FaGavel, FaMagic } from "@/components/icons";
+import { FaBalanceScale, FaGavel, FaMagic, FaTimesCircle } from "@/components/icons";
 import ChatMessage from "./ChatMessage";
 import ChatInput from "./ChatInput";
 import { useChat } from "./useChat";
@@ -26,6 +26,8 @@ export default function ChatContainer() {
     startNewChat,
     loadSession,
     deleteSession,
+    stopGenerating,
+    retryMessage,
   } = useChat();
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -44,11 +46,14 @@ export default function ChatContainer() {
         onLoadSession={loadSession}
         onDeleteSession={deleteSession}
       />
-      <main className="flex-1 lg:ml-64 flex flex-col pt-20">
+      <main className="flex-1 lg:ml-64 flex flex-col">
         {/* Messages */}
         <div
           ref={scrollRef}
           className="flex-1 overflow-y-auto px-4 sm:px-8 py-6"
+          role="log"
+          aria-live="polite"
+          aria-label="Chat messages"
         >
           {messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full max-w-2xl mx-auto text-center">
@@ -93,17 +98,26 @@ export default function ChatContainer() {
           ) : (
             <div className="max-w-4xl mx-auto space-y-6">
               {messages.map((msg) => (
-                <ChatMessage key={msg.id} message={msg} />
+                <ChatMessage key={msg.id} message={msg} onRetry={retryMessage} />
               ))}
               {isLoading && (
-                <div className="flex items-center gap-3 text-earth-400">
+                <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg bg-gold/10 border border-gold/20 flex items-center justify-center">
                     <FaBalanceScale className="w-4 h-4 text-gold animate-pulse" />
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-gold animate-pulse" />
-                    <span className="w-2 h-2 rounded-full bg-copper animate-pulse [animation-delay:0.2s]" />
-                    <span className="w-2 h-2 rounded-full bg-terracotta animate-pulse [animation-delay:0.4s]" />
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-gold animate-pulse" />
+                      <span className="w-2 h-2 rounded-full bg-copper animate-pulse [animation-delay:0.2s]" />
+                      <span className="w-2 h-2 rounded-full bg-terracotta animate-pulse [animation-delay:0.4s]" />
+                    </div>
+                    <button
+                      onClick={stopGenerating}
+                      className="ml-2 p-1.5 rounded-lg glass-panel text-earth-400 hover:text-earth-100 transition-colors cursor-pointer"
+                      aria-label="Stop generating"
+                    >
+                      <FaTimesCircle className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
               )}

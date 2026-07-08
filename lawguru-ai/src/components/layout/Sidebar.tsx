@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FaBars, FaTimes, FaShieldAlt, FaComments, FaFolderOpen, FaBalanceScale, FaPlus, FaTrash } from "@/components/icons";
+import { FaBars, FaTimes, FaShieldAlt, FaComments, FaFolderOpen, FaBalanceScale, FaPlus, FaTrash, FaSearch } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import type { ChatSession } from "@/types";
 
@@ -29,13 +29,45 @@ export default function Sidebar({
 }: SidebarProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const sidebarRef = useRef<HTMLElement>(null);
+
+  const filteredSessions = searchQuery
+    ? sessions.filter((s) =>
+        s.title.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : sessions;
+
+  // Close on escape key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (confirmDelete) {
+          setConfirmDelete(null);
+        } else if (open) {
+          setOpen(false);
+        }
+      }
+    };
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [open, confirmDelete]);
+
+  const handleDeleteConfirm = useCallback(
+    (sessionId: string) => {
+      onDeleteSession?.(sessionId);
+      setConfirmDelete(null);
+    },
+    [onDeleteSession]
+  );
 
   return (
     <>
       {/* Mobile toggle */}
       <button
         onClick={() => setOpen(!open)}
-        className="lg:hidden fixed top-20 left-4 z-40 p-2 glass-panel cursor-pointer"
+        className="lg:hidden fixed top-4 left-4 z-40 p-2 glass-panel cursor-pointer"
         aria-label="Toggle sidebar"
       >
         {open ? (
@@ -50,11 +82,13 @@ export default function Sidebar({
         <div
           className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-30"
           onClick={() => setOpen(false)}
+          aria-hidden="true"
         />
       )}
 
       {/* Sidebar */}
       <aside
+        ref={sidebarRef}
         className={cn(
           "fixed left-0 top-0 bottom-0 w-64 z-30",
           "flex flex-col pt-24 px-4 transition-transform duration-300",
@@ -74,7 +108,7 @@ export default function Sidebar({
           </span>
         </div>
 
-        <nav className="flex flex-col gap-1">
+        <nav className="flex flex-col gap-1" aria-label="Main navigation">
           {links.map(({ href, label, icon: Icon }) => {
             const active = pathname === href;
             return (
@@ -82,6 +116,7 @@ export default function Sidebar({
                 key={href}
                 href={href}
                 onClick={() => setOpen(false)}
+                aria-current={active ? "page" : undefined}
                 className={cn(
                   "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-body transition-all duration-200",
                   active
@@ -110,18 +145,36 @@ export default function Sidebar({
           </button>
         )}
 
-        {/* Search History */}
+        {/* Search + History */}
         {pathname === "/chat" && sessions.length > 0 && (
-          <div className="mt-6 flex-1 overflow-y-auto min-h-0">
+          <div className="mt-6 flex-1 overflow-y-auto min-h-0 flex flex-col">
             <h3 className="px-3 mb-2 text-[11px] font-heading font-semibold text-earth-500 uppercase tracking-wider">
               History
             </h3>
-            <div className="flex flex-col gap-0.5">
-              {sessions.map((session) => {
+
+            {/* Search input */}
+            <div className="relative mb-2">
+              <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-earth-600" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search conversations..."
+                className="w-full bg-surface-tertiary/50 border border-earth-800/50 rounded-lg pl-8 pr-3 py-1.5 text-xs text-earth-300 placeholder:text-earth-600 font-body focus:outline-none focus:ring-1 focus:ring-gold/30"
+                aria-label="Search conversations"
+              />
+            </div>
+
+            {/* Session list */}
+            <div className="flex flex-col gap-0.5" role="list">
+              {filteredSessions.map((session) => {
                 const isActive = session.id === activeSessionId;
+                const isConfirming = confirmDelete === session.id;
                 return (
                   <div
                     key={session.id}
+                    role="listitem"
+                    tabIndex={0}
                     className={cn(
                       "group flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-body cursor-pointer transition-all duration-200",
                       isActive
@@ -129,27 +182,68 @@ export default function Sidebar({
                         : "text-earth-400 hover:text-earth-100 hover:bg-surface-tertiary/50"
                     )}
                     onClick={() => {
-                      onLoadSession?.(session.id);
-                      setOpen(false);
+                      if (!isConfirming) {
+                        onLoadSession?.(session.id);
+                        setOpen(false);
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        if (!isConfirming) {
+                          onLoadSession?.(session.id);
+                          setOpen(false);
+                        }
+                      }
                     }}
                   >
                     <FaComments className="w-3.5 h-3.5 shrink-0" />
                     <span className="truncate flex-1 text-xs">
                       {session.title}
                     </span>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDeleteSession?.(session.id);
-                      }}
-                      className="opacity-0 group-hover:opacity-100 p-1 hover:text-terracotta transition-all cursor-pointer"
-                      aria-label="Delete conversation"
-                    >
-                      <FaTrash className="w-3 h-3" />
-                    </button>
+                    {isConfirming ? (
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteConfirm(session.id);
+                          }}
+                          className="px-1.5 py-0.5 text-[10px] rounded bg-zambia-red/20 text-zambia-red hover:bg-zambia-red/30 transition-colors cursor-pointer"
+                          aria-label="Confirm delete"
+                        >
+                          Delete
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setConfirmDelete(null);
+                          }}
+                          className="px-1.5 py-0.5 text-[10px] rounded bg-surface-tertiary text-earth-400 hover:text-earth-200 transition-colors cursor-pointer"
+                          aria-label="Cancel delete"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setConfirmDelete(session.id);
+                        }}
+                        className="opacity-0 group-hover:opacity-100 p-1 hover:text-terracotta transition-all cursor-pointer"
+                        aria-label="Delete conversation"
+                      >
+                        <FaTrash className="w-3 h-3" />
+                      </button>
+                    )}
                   </div>
                 );
               })}
+              {filteredSessions.length === 0 && searchQuery && (
+                <p className="px-3 py-2 text-xs text-earth-600">
+                  No conversations found
+                </p>
+              )}
             </div>
           </div>
         )}

@@ -47,6 +47,7 @@ export function useChat() {
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const initialized = useRef(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Load sessions from localStorage on mount
   useEffect(() => {
@@ -65,6 +66,13 @@ export function useChat() {
     saveSessions(sessions);
   }, [sessions]);
 
+  // Cleanup abort controller on unmount
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort();
+    };
+  }, []);
+
   const messages = sessions.find((s) => s.id === activeSessionId)?.messages ?? [];
 
   const startNewChat = useCallback(() => {
@@ -81,6 +89,12 @@ export function useChat() {
       return next;
     });
     setActiveSessionId((prev) => (prev === sessionId ? null : prev));
+  }, []);
+
+  const stopGenerating = useCallback(() => {
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = null;
+    setIsLoading(false);
   }, []);
 
   const sendMessage = useCallback(
@@ -128,6 +142,9 @@ export function useChat() {
       }
 
       setIsLoading(true);
+
+      const abortController = new AbortController();
+      abortControllerRef.current = abortController;
 
       try {
         const currentSession = sessions.find((s) => s.id === sessionId);
@@ -183,6 +200,7 @@ Guidelines:
             max_tokens: 2048,
             reasoning: { enabled: false },
           }),
+          signal: abortController.signal,
         });
 
         if (!response.ok) throw new Error(`LLM API error: ${response.status}`);
@@ -275,25 +293,81 @@ Guidelines:
           );
         }
       } catch (error) {
-        const errorMsg: ChatMessage = {
-          id: generateId(),
-          role: "assistant",
-          content:
-            "I encountered an error processing your request. Please check that the LLM service is running and try again.",
-          timestamp: new Date(),
-        };
-        setSessions((prev) =>
-          prev.map((s) =>
-            s.id === sessionId
-              ? { ...s, messages: [...s.messages, errorMsg], updatedAt: new Date() }
-              : s
-          )
-        );
+        if (error instanceof DOMException && error.name === "AbortError") {
+          // User cancelled — mark partial response if any
+          setSessions((prev) =>
+            prev.map((s) => {
+              if (s.id !== sessionId) return s;
+              const lastMsg = s.messages[s.messages.length - 1];
+              if (lastMsg?.role === "assistant" && lastMsg.content) {
+                // Keep partial response
+                return { ...s, updatedAt: new Date() };
+              }
+              // No partial content — add cancelled notice
+              return {
+                ...s,
+                messages: [
+                  ...s.messages,
+                  {
+                    id: generateId(),
+                    role: "assistant" as const,
+                    content: "*(Generation stopped)*",
+                    timestamp: new Date(),
+                  },
+                ],
+                updatedAt: new Date(),
+              };
+            })
+          );
+        } else {
+          const errorMsg: ChatMessage = {
+            id: generateId(),
+            role: "assistant",
+            content:
+              "I encountered an error processing your request. Please check that the LLM service is running and try again.",
+            timestamp: new Date(),
+          };
+          setSessions((prev) =>
+            prev.map((s) =>
+              s.id === sessionId
+                ? { ...s, messages: [...s.messages, errorMsg], updatedAt: new Date() }
+                : s
+            )
+          );
+        }
       } finally {
         setIsLoading(false);
+        abortControllerRef.current = null;
       }
     },
     [activeSessionId, sessions, isLoading]
+  );
+
+  const retryMessage = useCallback(
+    (messageId: string) => {
+      const session = sessions.find((s) => s.id === activeSessionId);
+      if (!session) return;
+
+      // Find the user message before this assistant message
+      const msgIndex = session.messages.findIndex((m) => m.id === messageId);
+      if (msgIndex <= 0) return;
+
+      // Remove the failed assistant message and retry
+      const userMsg = session.messages[msgIndex - 1];
+      if (userMsg.role !== "user") return;
+
+      setSessions((prev) =>
+        prev.map((s) =>
+          s.id === activeSessionId
+            ? { ...s, messages: s.messages.filter((_, i) => i !== msgIndex) }
+            : s
+        )
+      );
+
+      // Small delay to let state update, then resend
+      setTimeout(() => sendMessage(userMsg.content), 50);
+    },
+    [activeSessionId, sessions, sendMessage]
   );
 
   return {
@@ -305,5 +379,7 @@ Guidelines:
     startNewChat,
     loadSession,
     deleteSession,
+    stopGenerating,
+    retryMessage,
   };
 }
