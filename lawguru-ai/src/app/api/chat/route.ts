@@ -1,6 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
+import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { sanitizeString } from "@/lib/sanitize";
 
 export async function POST(request: NextRequest) {
+  // Rate limiting
+  const ip = request.headers.get("x-forwarded-for") || "anonymous";
+  const rateCheck = checkRateLimit(`chat:${ip}`, RATE_LIMITS.chat);
+  if (!rateCheck.allowed) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again later." },
+      {
+        status: 429,
+        headers: { "Retry-After": String(rateCheck.retryAfter) },
+      }
+    );
+  }
+
   try {
     const { query, history } = await request.json();
 
@@ -10,6 +25,8 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    const sanitizedQuery = sanitizeString(query);
 
     const systemPrompt = `You are LawGuru AI, an expert legal research assistant specializing in Zambian law. You analyze legal questions using the IRAC framework.
 
@@ -35,7 +52,7 @@ Guidelines:
     const messages = [
       { role: "system", content: systemPrompt },
       ...(history || []),
-      { role: "user", content: query },
+      { role: "user", content: sanitizedQuery },
     ];
 
     const llmBase = process.env.LLM_API_BASE || "http://localhost:11434/v1";

@@ -3,8 +3,9 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FaBars, FaTimes, FaShieldAlt, FaComments, FaFolderOpen, FaBalanceScale, FaPlus, FaTrash, FaSearch } from "@/components/icons";
+import { FaBars, FaTimes, FaShieldAlt, FaComments, FaFolderOpen, FaBalanceScale, FaPlus, FaTrash, FaSearch, FaCheck, FaRedo, FaCog } from "@/components/icons";
 import { cn } from "@/lib/utils";
+import PreferencesPanel from "@/components/settings/PreferencesPanel";
 import type { ChatSession } from "@/types";
 
 const links = [
@@ -18,6 +19,8 @@ interface SidebarProps {
   onNewChat?: () => void;
   onLoadSession?: (id: string) => void;
   onDeleteSession?: (id: string) => void;
+  onRenameSession?: (id: string, title: string) => void;
+  onPinSession?: (id: string) => void;
 }
 
 export default function Sidebar({
@@ -26,18 +29,57 @@ export default function Sidebar({
   onNewChat,
   onLoadSession,
   onDeleteSession,
+  onRenameSession,
+  onPinSession,
 }: SidebarProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [prefsOpen, setPrefsOpen] = useState(false);
   const sidebarRef = useRef<HTMLElement>(null);
+  const editInputRef = useRef<HTMLInputElement>(null);
 
-  const filteredSessions = searchQuery
+  const filteredSessions = (searchQuery
     ? sessions.filter((s) =>
         s.title.toLowerCase().includes(searchQuery.toLowerCase())
       )
-    : sessions;
+    : sessions
+  ).sort((a, b) => {
+    // Pinned sessions first
+    if (a.pinned && !b.pinned) return -1;
+    if (!a.pinned && b.pinned) return 1;
+    return 0;
+  });
+
+  // Focus edit input when entering rename mode
+  useEffect(() => {
+    if (editingId && editInputRef.current) {
+      editInputRef.current.focus();
+      editInputRef.current.select();
+    }
+  }, [editingId]);
+
+  const handleRenameStart = useCallback(
+    (sessionId: string, currentTitle: string) => {
+      setEditingId(sessionId);
+      setEditTitle(currentTitle);
+    },
+    []
+  );
+
+  const handleRenameSubmit = useCallback(
+    (sessionId: string) => {
+      const trimmed = editTitle.trim();
+      if (trimmed && trimmed !== sessions.find((s) => s.id === sessionId)?.title) {
+        onRenameSession?.(sessionId, trimmed);
+      }
+      setEditingId(null);
+    },
+    [editTitle, onRenameSession, sessions]
+  );
 
   // Close on escape key
   useEffect(() => {
@@ -170,6 +212,7 @@ export default function Sidebar({
               {filteredSessions.map((session) => {
                 const isActive = session.id === activeSessionId;
                 const isConfirming = confirmDelete === session.id;
+                const isEditing = editingId === session.id;
                 return (
                   <div
                     key={session.id}
@@ -182,7 +225,7 @@ export default function Sidebar({
                         : "text-earth-400 hover:text-earth-100 hover:bg-surface-tertiary/50"
                     )}
                     onClick={() => {
-                      if (!isConfirming) {
+                      if (!isConfirming && !isEditing) {
                         onLoadSession?.(session.id);
                         setOpen(false);
                       }
@@ -190,17 +233,42 @@ export default function Sidebar({
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
-                        if (!isConfirming) {
+                        if (!isConfirming && !isEditing) {
                           onLoadSession?.(session.id);
                           setOpen(false);
                         }
                       }
                     }}
+                    onDoubleClick={(e) => {
+                      e.stopPropagation();
+                      handleRenameStart(session.id, session.title);
+                    }}
                   >
-                    <FaComments className="w-3.5 h-3.5 shrink-0" />
-                    <span className="truncate flex-1 text-xs">
-                      {session.title}
-                    </span>
+                    {session.pinned ? (
+                      <span className="text-gold shrink-0 text-xs">Pin</span>
+                    ) : (
+                      <FaComments className="w-3.5 h-3.5 shrink-0" />
+                    )}
+                    {isEditing ? (
+                      <input
+                        ref={editInputRef}
+                        type="text"
+                        value={editTitle}
+                        onChange={(e) => setEditTitle(e.target.value)}
+                        onBlur={() => handleRenameSubmit(session.id)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") handleRenameSubmit(session.id);
+                          if (e.key === "Escape") setEditingId(null);
+                          e.stopPropagation();
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        className="flex-1 min-w-0 bg-earth-900/60 border border-copper/40 rounded px-1.5 py-0.5 text-xs text-earth-200 focus:outline-none"
+                      />
+                    ) : (
+                      <span className="truncate flex-1 text-xs">
+                        {session.title}
+                      </span>
+                    )}
                     {isConfirming ? (
                       <div className="flex items-center gap-1">
                         <button
@@ -225,16 +293,37 @@ export default function Sidebar({
                         </button>
                       </div>
                     ) : (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setConfirmDelete(session.id);
-                        }}
-                        className="opacity-0 group-hover:opacity-100 p-1 hover:text-terracotta transition-all cursor-pointer"
-                        aria-label="Delete conversation"
-                      >
-                        <FaTrash className="w-3 h-3" />
-                      </button>
+                      <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onPinSession?.(session.id);
+                          }}
+                          className={`p-1 transition-all cursor-pointer ${
+                            session.pinned
+                              ? "text-gold"
+                              : "text-earth-600 hover:text-gold"
+                          }`}
+                          aria-label={
+                            session.pinned ? "Unpin conversation" : "Pin conversation"
+                          }
+                          title={session.pinned ? "Unpin" : "Pin"}
+                        >
+                          <span className="text-[10px]">
+                            {session.pinned ? "Pin" : "Pin"}
+                          </span>
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setConfirmDelete(session.id);
+                          }}
+                          className="p-1 hover:text-terracotta transition-all cursor-pointer"
+                          aria-label="Delete conversation"
+                        >
+                          <FaTrash className="w-3 h-3" />
+                        </button>
+                      </div>
                     )}
                   </div>
                 );
@@ -248,8 +337,15 @@ export default function Sidebar({
           </div>
         )}
 
-        {/* Zambian-inspired info card */}
-        <div className="mt-auto px-3 pb-6">
+        {/* Zambian-inspired info card + Settings */}
+        <div className="mt-auto px-3 pb-6 space-y-3">
+          <button
+            onClick={() => setPrefsOpen(true)}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-body transition-all duration-200 text-earth-400 hover:text-earth-100 hover:bg-surface-tertiary/50 cursor-pointer"
+          >
+            <FaCog className="w-4 h-4" />
+            Preferences
+          </button>
           <div className="glass-panel p-4">
             <div className="flex items-center gap-2 mb-2">
               <FaShieldAlt className="w-4 h-4 text-zambia-green" />
@@ -265,6 +361,8 @@ export default function Sidebar({
           </div>
         </div>
       </aside>
+
+      <PreferencesPanel isOpen={prefsOpen} onClose={() => setPrefsOpen(false)} />
     </>
   );
 }

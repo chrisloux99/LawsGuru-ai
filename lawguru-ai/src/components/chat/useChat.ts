@@ -91,6 +91,22 @@ export function useChat() {
     setActiveSessionId((prev) => (prev === sessionId ? null : prev));
   }, []);
 
+  const renameSession = useCallback((sessionId: string, newTitle: string) => {
+    setSessions((prev) =>
+      prev.map((s) =>
+        s.id === sessionId ? { ...s, title: newTitle } : s
+      )
+    );
+  }, []);
+
+  const pinSession = useCallback((sessionId: string) => {
+    setSessions((prev) =>
+      prev.map((s) =>
+        s.id === sessionId ? { ...s, pinned: !s.pinned } : s
+      )
+    );
+  }, []);
+
   const stopGenerating = useCallback(() => {
     abortControllerRef.current?.abort();
     abortControllerRef.current = null;
@@ -379,6 +395,8 @@ Guidelines:
     startNewChat,
     loadSession,
     deleteSession,
+    renameSession,
+    pinSession,
     stopGenerating,
     retryMessage,
   };

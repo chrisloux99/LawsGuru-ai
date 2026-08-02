@@ -114,3 +114,49 @@ def process_file(
         )
 
     return result
+
+
+def process_and_index(
+    file_path: str,
+    mime_type: str,
+    file_id: str,
+    file_name: str,
+) -> dict:
+    """Process a file and add it to the vector index. Returns result dict."""
+    import json as _json
+    from datetime import datetime, timezone
+
+    chunks = process_file(file_path, mime_type, file_id, file_name)
+    if not chunks:
+        return {"chunks": 0, "error": "No text extracted from file"}
+
+    # Add indexedAt timestamp to metadata
+    now = datetime.now(timezone.utc).isoformat()
+    for chunk in chunks:
+        chunk["metadata"]["indexedAt"] = now
+        chunk["metadata"]["lastModified"] = now
+        chunk["metadata"]["source"] = "local"
+
+    # Import and call vector_store
+    from vector_store import add_documents
+
+    add_documents(chunks)
+    return {"chunks": len(chunks), "fileId": file_id}
+
+
+if __name__ == "__main__":
+    import argparse
+    import json as _json
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--process", type=str, help="File path to process")
+    parser.add_argument("--mime", type=str, help="MIME type")
+    parser.add_argument("--id", type=str, help="File ID")
+    parser.add_argument("--name", type=str, help="File name")
+    args = parser.parse_args()
+
+    if args.process:
+        result = process_and_index(args.process, args.mime, args.id, args.name)
+        print(_json.dumps(result))
+    else:
+        print(_json.dumps({"error": "No action specified. Use --process <path> --mime <type> --id <id> --name <name>"}))

@@ -44,8 +44,8 @@ const iracSteps = [
 const features = [
   {
     icon: FaFolderOpen,
-    title: "Google Drive Sync",
-    desc: "Connect your firm's Drive folder — PDFs, DOCX, Google Docs from the Zambia Law Development Commission, all indexed automatically.",
+    title: "Document Upload & Drive Sync",
+    desc: "Upload PDFs, DOCX, and text files directly from your computer, or connect Google Drive — all indexed automatically.",
   },
   {
     icon: FaSearch,

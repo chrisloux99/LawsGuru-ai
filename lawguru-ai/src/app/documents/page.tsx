@@ -1,26 +1,28 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { toast } from "sonner";
+import { applyPreferences, getPreferences } from "@/lib/preferences";
 import {
-  FaSyncAlt,
   FaTrashAlt,
   FaFileAlt,
   FaFile,
   FaFileExcel,
-  FaCheckCircle,
-  FaExclamationCircle,
-  FaClock,
   FaShieldAlt,
   FaDatabase,
   FaFolderOpen,
+  FaSearch,
+  FaTimes,
 } from "@/components/icons";
 import Sidebar from "@/components/layout/Sidebar";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
-import LoadingSpinner from "@/components/ui/LoadingSpinner";
-import type { IndexedDocument, SyncProgress, IndexStatus } from "@/types";
+import { DocumentCardSkeleton } from "@/components/ui/Skeleton";
+import EmptyState from "@/components/ui/EmptyState";
+import ErrorBoundary from "@/components/ui/ErrorBoundary";
+import FileUploadZone from "@/components/documents/FileUploadZone";
+import GoogleDriveCard from "@/components/documents/GoogleDriveCard";
+import type { IndexedDocument, IndexStatus } from "@/types";
 
 const mimeIcons: Record<string, typeof FaFileAlt> = {
   "application/pdf": FaFileAlt,
@@ -39,70 +41,74 @@ function getMimeLabel(mime: string): string {
 }
 
 export default function DocumentsPage() {
-  const [connected, setConnected] = useState(false);
-  const [syncing, setSyncing] = useState(false);
-  const [syncProgress, setSyncProgress] = useState<SyncProgress>({
-    status: "idle",
-    current: 0,
-    total: 0,
-    message: "",
-  });
   const [documents, setDocuments] = useState<IndexedDocument[]>([]);
   const [indexStatus, setIndexStatus] = useState<IndexStatus | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [previewDoc, setPreviewDoc] = useState<string | null>(null);
+  const [previewChunks, setPreviewChunks] = useState<
+    Array<{ id: string; text: string; chunkIndex: number }>
+  >([]);
+  const [previewLoading, setPreviewLoading] = useState(false);
 
-  // Detect OAuth callback success
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("connected") === "true") {
-      setConnected(true);
-      toast.success("Google Drive connected successfully");
-      // Clean up URL
-      window.history.replaceState({}, "", window.location.pathname);
+  const fetchDocuments = async () => {
+    try {
+      const [docRes, statusRes] = await Promise.all([
+        fetch("/api/documents"),
+        fetch("/api/index/status"),
+      ]);
+      if (docRes.ok) {
+        const data = await docRes.json();
+        setDocuments(data.documents || []);
+      }
+      if (statusRes.ok) {
+        const data = await statusRes.json();
+        setIndexStatus(data || null);
+      }
+    } catch {
+      // Silently fail — shows empty state
+    } finally {
+      setLoading(false);
     }
-    if (params.get("error")) {
-      toast.error("Failed to connect Google Drive");
-      window.history.replaceState({}, "", window.location.pathname);
-    }
-  }, []);
-
-  const handleConnect = async () => {
-    window.location.href = "/api/drive/auth";
   };
 
-  const handleSync = async () => {
-    setSyncing(true);
-    setSyncProgress({
-      status: "syncing",
-      current: 0,
-      total: 0,
-      message: "Connecting to Google Drive...",
-    });
+  // Load documents on mount & apply preferences
+  useEffect(() => {
+    applyPreferences(getPreferences());
+    fetchDocuments();
+  }, []);
 
+  // Filter documents by search and type
+  const filteredDocuments = documents.filter((doc) => {
+    const matchesSearch = doc.fileName
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+    if (typeFilter === "all") return matchesSearch;
+    const mime = doc.mimeType;
+    if (typeFilter === "pdf") return matchesSearch && mime.includes("pdf");
+    if (typeFilter === "docx")
+      return matchesSearch && mime.includes("wordprocessingml");
+    if (typeFilter === "txt") return matchesSearch && mime.includes("plain");
+    if (typeFilter === "gdoc")
+      return matchesSearch && mime.includes("google-apps");
+    return matchesSearch;
+  });
+
+  const handlePreview = async (docId: string) => {
+    setPreviewDoc(docId);
+    setPreviewLoading(true);
     try {
-      const response = await fetch("/api/drive/sync", { method: "POST" });
-      if (!response.ok) throw new Error("Sync failed");
-
-      const result = await response.json();
-      setDocuments(result.documents || []);
-      setIndexStatus(result.status || null);
-      setSyncProgress({
-        status: "done",
-        current: result.processed || 0,
-        total: result.total || 0,
-        message: `Synced ${result.processed || 0} documents`,
-      });
-      toast.success(`Synced ${result.processed || 0} documents`);
+      const res = await fetch(`/api/documents?id=${docId}&action=chunks`);
+      if (res.ok) {
+        const data = await res.json();
+        setPreviewChunks(data.chunks || []);
+      }
     } catch {
-      setSyncProgress({
-        status: "error",
-        current: 0,
-        total: 0,
-        message: "Sync failed. Check your Drive connection.",
-      });
-      toast.error("Sync failed. Check your Drive connection.");
+      setPreviewChunks([]);
     } finally {
-      setSyncing(false);
+      setPreviewLoading(false);
     }
   };
 
@@ -123,6 +129,7 @@ export default function DocumentsPage() {
     <div className="flex min-h-screen kente-bg">
       <Sidebar />
       <main className="flex-1 lg:ml-64 pt-8 px-4 sm:px-8 pb-12">
+        <ErrorBoundary>
         <div className="max-w-5xl mx-auto">
           {/* Header */}
           <div className="animate-fade-in-up delay-0 mb-8">
@@ -130,94 +137,34 @@ export default function DocumentsPage() {
               Document Library
             </h1>
             <p className="text-earth-400 font-body">
-              Connect your Google Drive to sync Zambian legal documents — case
-              law, statutes, contracts, and legal opinions.
+              Upload documents from your computer or connect Google Drive to
+              build your Zambian legal knowledge base.
             </p>
           </div>
 
-          {/* Connection Card */}
+          {/* Local File Upload */}
           <div className="animate-fade-in-up delay-1 mb-8">
             <Card>
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-copper/10 border border-copper/20 flex items-center justify-center copper-glow">
-                    <FaFolderOpen className="w-6 h-6 text-copper" />
-                  </div>
-                  <div>
-                    <h3 className="font-heading text-lg font-bold text-earth-100">
-                      Google Drive
-                    </h3>
-                    <p className="text-sm text-earth-400 font-body">
-                      {connected
-                        ? "Connected — ready to sync legal documents"
-                        : "Not connected — connect to start indexing"}
-                    </p>
-                  </div>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-xl bg-copper/10 border border-copper/20 flex items-center justify-center copper-glow">
+                  <FaFolderOpen className="w-5 h-5 text-copper" />
                 </div>
-                <div className="flex items-center gap-3">
-                  {!connected ? (
-                    <Button onClick={handleConnect} variant="copper">
-                      Connect Drive
-                    </Button>
-                  ) : (
-                    <>
-                      <Button
-                        variant="secondary"
-                        onClick={handleSync}
-                        disabled={syncing}
-                      >
-                        {syncing ? (
-                          <LoadingSpinner size={16} />
-                        ) : (
-                          <FaSyncAlt className="w-4 h-4 mr-2" />
-                        )}
-                        {syncing ? "Syncing..." : "Sync Now"}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        onClick={() => setConnected(false)}
-                      >
-                        Disconnect
-                      </Button>
-                    </>
-                  )}
+                <div>
+                  <h3 className="font-heading text-lg font-bold text-earth-100">
+                    Upload from Computer
+                  </h3>
+                  <p className="text-sm text-earth-400 font-body">
+                    Upload PDF, DOCX, or TXT files directly
+                  </p>
                 </div>
               </div>
-
-              {/* Sync Progress */}
-              {syncProgress.status !== "idle" && (
-                <div className="mt-4 pt-4 border-t border-earth-800/50">
-                  <div className="flex items-center gap-3">
-                    {syncProgress.status === "done" && (
-                      <FaCheckCircle className="w-4 h-4 text-zambia-green" />
-                    )}
-                    {syncProgress.status === "error" && (
-                      <FaExclamationCircle className="w-4 h-4 text-zambia-red" />
-                    )}
-                    {syncProgress.status === "syncing" && (
-                      <FaClock className="w-4 h-4 text-gold animate-pulse" />
-                    )}
-                    <span className="text-sm text-earth-300 font-body">
-                      {syncProgress.message}
-                    </span>
-                  </div>
-                  {syncProgress.total > 0 && (
-                    <div className="mt-2 h-1.5 rounded-full bg-earth-800 overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all duration-500"
-                        style={{
-                          width: `${
-                            (syncProgress.current / syncProgress.total) * 100
-                          }%`,
-                          background:
-                            "linear-gradient(90deg, #B87333, #CA8A04)",
-                        }}
-                      />
-                    </div>
-                  )}
-                </div>
-              )}
+              <FileUploadZone onUploadComplete={fetchDocuments} />
             </Card>
+          </div>
+
+          {/* Google Drive Connection */}
+          <div className="animate-fade-in-up delay-1 mb-8">
+            <GoogleDriveCard onSyncComplete={fetchDocuments} />
           </div>
 
           {/* Index Status */}
@@ -272,29 +219,77 @@ export default function DocumentsPage() {
 
           {/* Document List */}
           <div className="animate-fade-in-up delay-3">
-            <h2 className="font-heading text-xl font-bold text-earth-100 mb-4">
-              Indexed Documents
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+              <h2 className="font-heading text-xl font-bold text-earth-100">
+                Indexed Documents
+                {documents.length > 0 && (
+                  <Badge variant="gold" className="ml-2">
+                    {filteredDocuments.length}
+                  </Badge>
+                )}
+              </h2>
               {documents.length > 0 && (
-                <Badge variant="gold" className="ml-2">
-                  {documents.length}
-                </Badge>
+                <div className="relative">
+                  <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-earth-500" />
+                  <input
+                    type="text"
+                    placeholder="Search documents..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full sm:w-64 pl-9 pr-8 py-2 bg-earth-900/60 border border-earth-700 rounded-lg text-sm text-earth-200 placeholder:text-earth-600 focus:outline-none focus:border-copper/50 transition-colors"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery("")}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-earth-500 hover:text-earth-300"
+                    >
+                      <FaTimes className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
               )}
-            </h2>
+            </div>
 
-            {documents.length === 0 ? (
-              <Card className="text-center py-12">
-                <FaFolderOpen className="w-12 h-12 text-earth-700 mx-auto mb-4" />
-                <p className="text-earth-500 font-body mb-2">
-                  No documents indexed yet
-                </p>
-                <p className="text-xs text-earth-600 font-body">
-                  Connect your Google Drive and sync to start building your
-                  Zambian legal knowledge base.
-                </p>
-              </Card>
+            {/* Type Filters */}
+            {documents.length > 0 && (
+              <div className="flex gap-2 mb-4 flex-wrap">
+                {[
+                  { key: "all", label: "All" },
+                  { key: "pdf", label: "PDF" },
+                  { key: "docx", label: "DOCX" },
+                  { key: "txt", label: "TXT" },
+                  { key: "gdoc", label: "Google Docs" },
+                ].map((filter) => (
+                  <button
+                    key={filter.key}
+                    onClick={() => setTypeFilter(filter.key)}
+                    className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+                      typeFilter === filter.key
+                        ? "bg-copper/20 text-copper border-copper/40"
+                        : "bg-earth-900/40 text-earth-500 border-earth-700 hover:border-earth-600"
+                    }`}
+                  >
+                    {filter.label}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {loading ? (
+              <div className="space-y-3">
+                <DocumentCardSkeleton />
+                <DocumentCardSkeleton />
+                <DocumentCardSkeleton />
+              </div>
+            ) : documents.length === 0 ? (
+              <EmptyState
+                icon={FaFolderOpen}
+                title="No documents indexed yet"
+                description="Upload files from your computer or connect Google Drive to start building your Zambian legal knowledge base."
+              />
             ) : (
               <div className="space-y-3">
-                {documents.map((doc) => {
+                {filteredDocuments.map((doc) => {
                   const Icon = mimeIcons[doc.mimeType] || FaFile;
                   const isConfirming = deleteConfirm === doc.driveFileId;
                   return (
@@ -314,6 +309,9 @@ export default function DocumentsPage() {
                             <Badge variant="copper">
                               {getMimeLabel(doc.mimeType)}
                             </Badge>
+                            {doc.source === "local" && (
+                              <Badge variant="green">Local</Badge>
+                            )}
                             <span className="text-xs text-earth-500">
                               {doc.chunkCount} chunks
                             </span>
@@ -343,14 +341,24 @@ export default function DocumentsPage() {
                           </Button>
                         </div>
                       ) : (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setDeleteConfirm(doc.driveFileId)}
-                          aria-label={`Delete ${doc.fileName}`}
-                        >
-                          <FaTrashAlt className="w-4 h-4" />
-                        </Button>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handlePreview(doc.driveFileId)}
+                            aria-label={`Preview ${doc.fileName}`}
+                          >
+                            <FaFileAlt className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setDeleteConfirm(doc.driveFileId)}
+                            aria-label={`Delete ${doc.fileName}`}
+                          >
+                            <FaTrashAlt className="w-4 h-4" />
+                          </Button>
+                        </div>
                       )}
                     </Card>
                   );
@@ -359,6 +367,68 @@ export default function DocumentsPage() {
             )}
           </div>
         </div>
+        </ErrorBoundary>
+
+        {/* Document Preview Modal */}
+        {previewDoc && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            onClick={() => {
+              setPreviewDoc(null);
+              setPreviewChunks([]);
+            }}
+          >
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+            <div
+              className="relative glass-panel max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between p-4 border-b border-earth-800/50">
+                <h3 className="font-heading text-lg font-bold text-earth-100">
+                  Document Preview
+                </h3>
+                <button
+                  onClick={() => {
+                    setPreviewDoc(null);
+                    setPreviewChunks([]);
+                  }}
+                  className="text-earth-400 hover:text-earth-200 transition-colors"
+                >
+                  <FaTimes className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto p-4">
+                {previewLoading ? (
+                  <div className="space-y-3">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="shimmer h-20 rounded-lg" />
+                    ))}
+                  </div>
+                ) : previewChunks.length === 0 ? (
+                  <p className="text-earth-500 text-sm text-center py-8">
+                    No chunks found for this document.
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    {previewChunks.map((chunk) => (
+                      <div
+                        key={chunk.id}
+                        className="p-3 bg-earth-900/40 rounded-lg border border-earth-800/50"
+                      >
+                        <p className="text-xs text-earth-500 mb-1">
+                          Chunk {chunk.chunkIndex + 1}
+                        </p>
+                        <p className="text-sm text-earth-300 font-body leading-relaxed">
+                          {chunk.text}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

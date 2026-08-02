@@ -48,6 +48,14 @@ export interface IndexedDocument {
   chunkCount: number;
   indexedAt: string;
   lastModified: string;
+  source?: "local" | "drive";
+}
+
+export interface UploadProgress {
+  file: File;
+  status: "pending" | "processing" | "indexed" | "error";
+  progress: number;
+  error?: string;
 }
 
 export interface IndexStatus {
@@ -71,4 +79,5 @@ export interface ChatSession {
   messages: ChatMessage[];
   createdAt: Date;
   updatedAt: Date;
+  pinned?: boolean;
 }

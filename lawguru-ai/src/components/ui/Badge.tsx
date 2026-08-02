@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 
 interface BadgeProps {
   children: React.ReactNode;
-  variant?: "default" | "gold" | "copper" | "issue" | "rule" | "application" | "conclusion";
+  variant?: "default" | "gold" | "copper" | "green" | "issue" | "rule" | "application" | "conclusion";
   className?: string;
 }
 
@@ -10,6 +10,7 @@ const variantStyles = {
   default: "bg-earth-800/60 text-earth-300 border-earth-700/50",
   gold: "bg-gold/10 text-gold-light border-gold/30",
   copper: "bg-copper/10 text-copper-light border-copper/30",
+  green: "bg-zambia-green/10 text-green-400 border-zambia-green/30",
   issue: "bg-yellow-500/10 text-yellow-400 border-yellow-500/30",
   rule: "bg-blue-500/10 text-blue-400 border-blue-500/30",
   application: "bg-terracotta/10 text-terracotta-light border-terracotta/30",

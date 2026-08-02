@@ -17,6 +17,19 @@
   --gold: #CA8A04;
   --zambia-green: #198A00;
   --zambia-red: #DE2010;
+  --base-font-size: 16px;
+}
+
+[data-theme="light"] {
+  --bg-primary: #FDF8F0;
+  --bg-secondary: #F5EDE0;
+  --bg-tertiary: #EBE0D0;
+  --bg-card: #FFFFFF;
+  --text-primary: #2A1E0F;
+  --text-muted: #8B6D4A;
+  --border: #D4C4A8;
+  --accent: #92400E;
+  --accent-muted: #CA8A04;
 }
 
 * {
@@ -47,6 +60,7 @@ body {
   background: var(--bg-primary);
   color: var(--text-primary);
   font-family: var(--font-work-sans), system-ui, sans-serif;
+  font-size: var(--base-font-size);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -96,6 +110,22 @@ body {
 .delay-3 { animation-delay: 0.3s; }
 .delay-4 { animation-delay: 0.4s; }
 .delay-5 { animation-delay: 0.5s; }
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(74, 52, 25, 0.3) 25%,
+    rgba(184, 115, 51, 0.15) 50%,
+    rgba(74, 52, 25, 0.3) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
+}
 
 @keyframes float {
   0%, 100% { transform: translateY(0); }

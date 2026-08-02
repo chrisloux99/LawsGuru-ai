@@ -1,11 +1,13 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useCallback } from "react";
 import { FaBalanceScale, FaGavel, FaMagic, FaTimesCircle } from "@/components/icons";
 import ChatMessage from "./ChatMessage";
 import ChatInput from "./ChatInput";
 import { useChat } from "./useChat";
 import Sidebar from "@/components/layout/Sidebar";
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
+import { applyPreferences, getPreferences } from "@/lib/preferences";
 
 const suggestions = [
   "What are the elements of a valid contract under Zambian law?",
@@ -26,16 +28,30 @@ export default function ChatContainer() {
     startNewChat,
     loadSession,
     deleteSession,
+    renameSession,
+    pinSession,
     stopGenerating,
     retryMessage,
   } = useChat();
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // Apply preferences on mount
+  useEffect(() => {
+    applyPreferences(getPreferences());
+  }, []);
+
+  // Scroll to bottom on new messages
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
+
+  // Keyboard shortcuts
+  const handleNewChat = useCallback(() => startNewChat(), [startNewChat]);
+  useKeyboardShortcuts({
+    onNewChat: handleNewChat,
+  });
 
   return (
     <div className="flex min-h-screen">
@@ -45,6 +61,8 @@ export default function ChatContainer() {
         onNewChat={startNewChat}
         onLoadSession={loadSession}
         onDeleteSession={deleteSession}
+        onRenameSession={renameSession}
+        onPinSession={pinSession}
       />
       <main className="flex-1 lg:ml-64 flex flex-col">
         {/* Messages */}

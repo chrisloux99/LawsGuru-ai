@@ -150,6 +150,22 @@ def remove_by_file_id(drive_file_id: str) -> int:
     return removed
 
 
+def get_document_chunks(file_id: str) -> list[dict]:
+    """Get all chunks for a specific document by file ID."""
+    chunk_ids = _file_chunks.get(file_id, [])
+    result = []
+    for cid in chunk_ids:
+        chunk_data = _docstore.get(cid, {})
+        if chunk_data:
+            result.append({
+                "id": cid,
+                "text": chunk_data.get("text", ""),
+                "chunkIndex": chunk_data.get("metadata", {}).get("chunkIndex", 0),
+            })
+    result.sort(key=lambda x: x["chunkIndex"])
+    return result
+
+
 def get_status() -> dict:
     """Get index status info."""
     index = _get_index()
@@ -183,6 +199,7 @@ def list_documents() -> list[dict]:
                 "chunkCount": len(chunk_ids),
                 "indexedAt": meta.get("indexedAt", ""),
                 "lastModified": meta.get("lastModified", ""),
+                "source": meta.get("source", "drive"),
             }
         )
     return result
@@ -207,6 +224,7 @@ if __name__ == "__main__":
     parser.add_argument("--status", action="store_true")
     parser.add_argument("--list", action="store_true")
     parser.add_argument("--remove", type=str, help="Drive file ID to remove")
+    parser.add_argument("--chunks", type=str, help="Get chunks for a file ID")
     args = parser.parse_args()
 
     if args.status:
@@ -216,5 +234,8 @@ if __name__ == "__main__":
     elif args.remove:
         removed = remove_by_file_id(args.remove)
         print(json.dumps({"removed": removed}))
+    elif args.chunks:
+        chunks = get_document_chunks(args.chunks)
+        print(json.dumps({"chunks": chunks}))
     else:
         print(json.dumps(get_status()))
