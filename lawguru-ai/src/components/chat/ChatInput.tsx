@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect, KeyboardEvent } from "react";
-import { FaPaperPlane } from "@/components/icons";
+import { useRouter } from "next/navigation";
+import { FaPaperPlane, FaUpload } from "@/components/icons";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
 interface Props {
@@ -12,6 +13,8 @@ interface Props {
 export default function ChatInput({ onSend, isLoading }: Props) {
   const [value, setValue] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -34,8 +37,23 @@ export default function ChatInput({ onSend, isLoading }: Props) {
     }
   };
 
+  const handleUploadClick = () => {
+    // Navigate to documents page for upload
+    router.push("/documents");
+  };
+
   return (
-    <div className="glass-panel p-3 flex items-end gap-3">
+    <div className="glass-panel p-3 flex items-end gap-2">
+      {/* Upload / Attach button */}
+      <button
+        onClick={handleUploadClick}
+        className="w-10 h-10 rounded-xl flex items-center justify-center text-earth-500 hover:text-copper hover:bg-copper/10 transition-all duration-200 shrink-0 cursor-pointer"
+        aria-label="Upload documents"
+        title="Upload documents"
+      >
+        <FaUpload className="w-4 h-4" />
+      </button>
+
       <textarea
         ref={textareaRef}
         value={value}
@@ -46,6 +64,24 @@ export default function ChatInput({ onSend, isLoading }: Props) {
         aria-label="Message input"
         className="flex-1 bg-transparent text-sm text-earth-100 placeholder:text-earth-600 font-body resize-none focus:outline-none py-2 px-2 max-h-[200px]"
       />
+
+      {/* Hidden file input for direct upload */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".pdf,.docx,.txt"
+        multiple
+        className="hidden"
+        onChange={(e) => {
+          const files = e.target.files;
+          if (files && files.length > 0) {
+            // Navigate to documents page where upload happens
+            router.push("/documents");
+          }
+        }}
+      />
+
+      {/* Send button */}
       <button
         onClick={handleSend}
         disabled={!value.trim() || isLoading}
