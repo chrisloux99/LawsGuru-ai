@@ -26,3 +26,5 @@ lawguru-ai/data/
 # Build output
 .next/
 .vercel/
+.vercel
+.env*
