@@ -1,5 +1,4 @@
 {
-  "framework": "nextjs",
   "buildCommand": "cd lawguru-ai && npm run build",
   "outputDirectory": "lawguru-ai/.next",
   "installCommand": "cd lawguru-ai && npm install"
