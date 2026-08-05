@@ -11,3 +11,18 @@ codebooks.npz
 target/
 evolve/
 evolve_rust/
+
+# Environment
+.env
+.env.local
+.env*.local
+
+# Dependencies
+node_modules/
+
+# Data (local vector index, uploads)
+lawguru-ai/data/
+
+# Build output
+.next/
+.vercel/

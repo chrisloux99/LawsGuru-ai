@@ -1,13 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
-import { execFile } from "child_process";
-import { promisify } from "util";
-import path from "path";
-
-const execFileAsync = promisify(execFile);
+import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
+    const { execFile } = await import("child_process");
+    const { promisify } = await import("util");
+    const path = await import("path");
+    const execFileAsync = promisify(execFile);
     const pythonDir = path.join(process.cwd(), "python");
+
     const { stdout } = await execFileAsync(
       "python",
       [path.join(pythonDir, "vector_store.py"), "--status"],

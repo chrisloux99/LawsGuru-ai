@@ -1,12 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { execFile } from "child_process";
-import { promisify } from "util";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
-import crypto from "crypto";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
-
-const execFileAsync = promisify(execFile);
+import { sanitizeString } from "@/lib/sanitize";
 
 const ALLOWED_TYPES = new Set([
   "application/pdf",
@@ -23,40 +17,51 @@ function sanitizeFilename(name: string): string {
     .slice(0, 200);
 }
 
+async function runPythonScript(args: string[]): Promise<string | null> {
+  try {
+    const { execFile } = await import("child_process");
+    const { promisify } = await import("util");
+    const path = await import("path");
+    const execFileAsync = promisify(execFile);
+    const pythonDir = path.join(process.cwd(), "python");
+    const { stdout } = await execFileAsync(
+      "python",
+      [path.join(pythonDir, ...args)],
+      { cwd: process.cwd(), timeout: 60000 }
+    );
+    return stdout;
+  } catch {
+    return null;
+  }
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const action = searchParams.get("action");
     const docId = searchParams.get("id");
-    const pythonDir = path.join(process.cwd(), "python");
 
-    // Get chunks for a specific document
     if (action === "chunks" && docId) {
-      const { stdout } = await execFileAsync(
-        "python",
-        [path.join(pythonDir, "vector_store.py"), "--chunks", docId],
-        { cwd: process.cwd(), timeout: 10000 }
-      );
-      const data = JSON.parse(stdout);
-      return NextResponse.json(data);
+      const stdout = await runPythonScript(["vector_store.py", "--chunks", docId]);
+      if (stdout) {
+        const data = JSON.parse(stdout);
+        return NextResponse.json(data);
+      }
+      return NextResponse.json({ chunks: [] });
     }
 
-    // List all documents
-    const { stdout } = await execFileAsync(
-      "python",
-      [path.join(pythonDir, "vector_store.py"), "--list"],
-      { cwd: process.cwd(), timeout: 10000 }
-    );
-
-    const documents = JSON.parse(stdout);
-    return NextResponse.json({ documents });
+    const stdout = await runPythonScript(["vector_store.py", "--list"]);
+    if (stdout) {
+      const documents = JSON.parse(stdout);
+      return NextResponse.json({ documents });
+    }
+    return NextResponse.json({ documents: [] });
   } catch {
     return NextResponse.json({ documents: [] });
   }
 }
 
 export async function POST(request: NextRequest) {
-  // Rate limiting
   const ip = request.headers.get("x-forwarded-for") || "anonymous";
   const rateCheck = checkRateLimit(`upload:${ip}`, RATE_LIMITS.upload);
   if (!rateCheck.allowed) {
@@ -80,8 +85,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const fs = await import("fs/promises");
+    const path = await import("path");
+    const crypto = await import("crypto");
+
     const uploadDir = path.join(process.cwd(), "data", "uploads");
-    await mkdir(uploadDir, { recursive: true });
+    await fs.mkdir(uploadDir, { recursive: true });
 
     const results: Array<{
       fileName: string;
@@ -91,7 +100,6 @@ export async function POST(request: NextRequest) {
     }> = [];
 
     for (const file of files) {
-      // Validate type
       if (!ALLOWED_TYPES.has(file.type)) {
         results.push({
           fileName: file.name,
@@ -101,7 +109,6 @@ export async function POST(request: NextRequest) {
         continue;
       }
 
-      // Validate size
       if (file.size > MAX_FILE_SIZE) {
         results.push({
           fileName: file.name,
@@ -111,35 +118,36 @@ export async function POST(request: NextRequest) {
         continue;
       }
 
-      // Save file to disk
       const sanitizedName = sanitizeFilename(file.name);
       const fileId = crypto.randomUUID();
       const filePath = path.join(uploadDir, `${fileId}_${sanitizedName}`);
       const buffer = Buffer.from(await file.arrayBuffer());
-      await writeFile(filePath, buffer);
+      await fs.writeFile(filePath, buffer);
 
       try {
-        // Process and index the file via Python
-        const pythonDir = path.join(process.cwd(), "python");
-        const { stdout } = await execFileAsync(
-          "python",
-          [
-            path.join(pythonDir, "doc_processor.py"),
-            "--process",
-            filePath,
-            file.type,
-            fileId,
-            file.name,
-          ],
-          { cwd: process.cwd(), timeout: 60000 }
-        );
+        const stdout = await runPythonScript([
+          "doc_processor.py",
+          "--process",
+          filePath,
+          file.type,
+          fileId,
+          file.name,
+        ]);
 
-        const processResult = JSON.parse(stdout);
-        results.push({
-          fileName: file.name,
-          status: "indexed",
-          chunks: processResult.chunks || 0,
-        });
+        if (stdout) {
+          const processResult = JSON.parse(stdout);
+          results.push({
+            fileName: file.name,
+            status: "indexed",
+            chunks: processResult.chunks || 0,
+          });
+        } else {
+          results.push({
+            fileName: file.name,
+            status: "uploaded",
+            error: "Document uploaded but indexing unavailable in this environment",
+          });
+        }
       } catch (err) {
         results.push({
           fileName: file.name,
@@ -171,14 +179,11 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const pythonDir = path.join(process.cwd(), "python");
-    await execFileAsync(
-      "python",
-      [path.join(pythonDir, "vector_store.py"), "--remove", docId],
-      { cwd: process.cwd(), timeout: 10000 }
-    );
-
-    return NextResponse.json({ success: true });
+    const stdout = await runPythonScript(["vector_store.py", "--remove", docId]);
+    if (stdout) {
+      return NextResponse.json({ success: true });
+    }
+    return NextResponse.json({ success: false, error: "Indexing service unavailable" });
   } catch {
     return NextResponse.json(
       { error: "Failed to delete document" },
