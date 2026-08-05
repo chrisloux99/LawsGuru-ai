@@ -1,11 +1,6 @@
 {
+  "framework": "nextjs",
   "buildCommand": "cd lawguru-ai && npm run build",
   "outputDirectory": "lawguru-ai/.next",
-  "installCommand": "cd lawguru-ai && npm install",
-  "framework": "nextjs",
-  "functions": {
-    "lawguru-ai/src/app/api/**/*.ts": {
-      "maxDuration": 30
-    }
-  }
+  "installCommand": "cd lawguru-ai && npm install"
 }
