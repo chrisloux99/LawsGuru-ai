@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
 
     const sanitizedQuery = sanitizeString(query);
 
-    const systemPrompt = `You are LawGuru AI, an expert legal research assistant specializing in Zambian law. You analyze legal questions using the IRAC framework.
+    const systemPrompt = `You are iFunde AI, an expert legal research assistant specializing in Zambian law. You analyze legal questions using the IRAC framework.
 
 For every legal question, you MUST structure your response using these four sections with markdown headers:
 

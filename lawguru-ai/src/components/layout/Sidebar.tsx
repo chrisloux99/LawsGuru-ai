@@ -2,8 +2,9 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { FaBars, FaTimes, FaShieldAlt, FaComments, FaFolderOpen, FaBalanceScale, FaPlus, FaTrash, FaSearch, FaCheck, FaRedo, FaCog } from "@/components/icons";
+import { FaBars, FaTimes, FaShieldAlt, FaComments, FaFolderOpen, FaPlus, FaTrash, FaSearch, FaCheck, FaRedo, FaCog } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import PreferencesPanel from "@/components/settings/PreferencesPanel";
 import type { ChatSession } from "@/types";
@@ -144,9 +145,19 @@ export default function Sidebar({
         }}
       >
         <div className="flex items-center gap-2 px-3 mb-8 lg:hidden">
-          <FaBalanceScale className="w-5 h-5 text-gold" />
+          <div className="relative w-8 h-8">
+            <Image
+              src="/ifunde-logo.png"
+              alt="iFunde AI Logo"
+              width={32}
+              height={32}
+              className="object-contain"
+            />
+          </div>
           <span className="font-heading text-lg font-bold">
-            LawGuru<span className="text-gold"> AI</span>
+            <span className="text-earth-100">i</span>
+            <span className="text-gold">Funde</span>
+            <span className="text-zambia-green text-xs font-semibold ml-1">AI</span>
           </span>
         </div>
 

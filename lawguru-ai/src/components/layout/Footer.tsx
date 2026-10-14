@@ -1,4 +1,5 @@
-import { FaShieldAlt, FaBalanceScale } from "@/components/icons";
+import Image from "next/image";
+import { FaShieldAlt } from "@/components/icons";
 
 export default function Footer() {
   return (
@@ -9,15 +10,15 @@ export default function Footer() {
 
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3 text-earth-500 text-sm">
-            <div className="w-8 h-8 rounded-lg bg-gold/10 border border-gold/20 flex items-center justify-center">
-              <FaBalanceScale className="w-4 h-4 text-gold" />
+            <div className="relative w-8 h-8">
+              <Image src="/ifunde-logo.png" alt="iFunde AI Logo" width={32} height={32} className="object-contain" />
             </div>
             <div>
               <span className="font-heading font-semibold text-earth-300">
-                LawGuru AI
+                iFunde <span className="text-gold">AI</span>
               </span>
               <span className="mx-2 text-earth-700">|</span>
-              <span className="text-earth-500">Legal Research, Decoded</span>
+              <span className="text-earth-500 italic text-xs">Umwengo wa Malango</span>
             </div>
           </div>
 

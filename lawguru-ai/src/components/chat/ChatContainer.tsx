@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useCallback } from "react";
+import Image from "next/image";
 import { FaBalanceScale, FaGavel, FaMagic, FaTimesCircle } from "@/components/icons";
 import ChatMessage from "./ChatMessage";
 import ChatInput from "./ChatInput";
@@ -77,8 +78,15 @@ export default function ChatContainer() {
             <div className="flex flex-col items-center justify-center h-full max-w-2xl mx-auto text-center">
               <div className="animate-fade-in-up">
                 {/* Icon */}
-                <div className="w-20 h-20 rounded-2xl bg-gold/10 border border-gold/20 flex items-center justify-center mb-6 mx-auto copper-glow">
-                  <FaBalanceScale className="w-10 h-10 text-gold" />
+                <div className="w-20 h-20 rounded-2xl bg-gold/10 border border-gold/20 flex items-center justify-center mb-6 mx-auto copper-glow overflow-hidden">
+                  <Image
+                    src="/ifunde-logo.png"
+                    alt="iFunde AI"
+                    width={80}
+                    height={80}
+                    className="w-full h-full object-contain p-1"
+                    priority
+                  />
                 </div>
 
                 <h2 className="font-heading text-3xl font-extrabold text-earth-100 mb-3">

@@ -16,7 +16,7 @@ const workSans = Work_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "LawGuru AI — Zambian Legal Research, Decoded",
+  title: "iFunde AI — Umwengo wa Malango",
   description:
     "AI-powered legal research for the Zambian justice system using the IRAC framework. Analyze statutes, case law, and constitutional matters. Local, private, and fast.",
   keywords: [
@@ -29,6 +29,7 @@ export const metadata: Metadata = {
     "legal AI",
     "Lusaka",
     "Supreme Court of Zambia",
+    "iFunde",
   ],
 };
 

@@ -244,7 +244,7 @@ export default function HomePage() {
                     Zambian Legal Sources
                   </h3>
                   <p className="text-earth-400 font-body text-sm mb-4">
-                    LawGuru AI is optimized to work with documents from the
+                    iFunde AI is optimized to work with documents from the
                     Zambian legal system, including:
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -281,7 +281,7 @@ export default function HomePage() {
             <Link href="/chat">
               <Button size="lg" variant="copper">
                 <FaBalanceScale className="w-4 h-4 mr-2" />
-                Launch LawGuru AI
+                Launch iFunde AI
               </Button>
             </Link>
           </div>

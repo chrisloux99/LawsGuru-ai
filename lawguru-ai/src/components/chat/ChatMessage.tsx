@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
-import { FaUser, FaBalanceScale, FaCopy, FaCheck, FaRedo } from "@/components/icons";
+import { FaUser, FaCopy, FaCheck, FaRedo } from "@/components/icons";
+import Image from "next/image";
 import { formatDate } from "@/lib/utils";
 import IRACBlock from "./IRACBlock";
 import type { ChatMessage as ChatMessageType } from "@/types";
@@ -36,7 +37,13 @@ export default function ChatMessage({ message, onRetry }: Props) {
         {isUser ? (
           <FaUser className="w-4 h-4 text-earth-400" />
         ) : (
-          <FaBalanceScale className="w-4 h-4 text-gold" />
+          <Image
+            src="/ifunde-logo.png"
+            alt="iFunde AI"
+            width={32}
+            height={32}
+            className="w-full h-full object-contain"
+          />
         )}
       </div>
 
