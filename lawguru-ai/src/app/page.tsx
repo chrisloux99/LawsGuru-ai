@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { FaArrowRight, FaShieldAlt, FaBolt, FaBrain, FaSearch, FaFolderOpen, FaBalanceScale, FaGavel, FaLandmark, FaUsers, FaBook } from "@/components/icons";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
@@ -78,6 +79,29 @@ export default function HomePage() {
     <div className="min-h-screen kente-bg">
       {/* Hero */}
       <section className="relative flex flex-col items-center justify-center min-h-screen px-6 overflow-hidden">
+        {/* Brand — top-left corner */}
+        <div className="absolute top-6 left-6 z-20 flex items-center gap-3 animate-fade-in-up">
+          <div className="relative w-11 h-11 rounded-xl bg-gold/10 border border-gold/20 overflow-hidden">
+            <Image
+              src="/ifunde-logo.png"
+              alt="iFunde AI Logo"
+              width={44}
+              height={44}
+              className="object-contain"
+              priority
+            />
+          </div>
+          <div className="flex flex-col">
+            <span className="font-heading text-lg font-bold tracking-tight leading-none">
+              <span className="text-earth-100">i</span>
+              <span className="text-gold">Funde</span>
+            </span>
+            <span className="text-[10px] text-earth-500 font-body tracking-widest uppercase mt-1">
+              | Umwengo Wa Malango |
+            </span>
+          </div>
+        </div>
+
         <div className="absolute inset-0 bg-gradient-radial from-gold/5 via-transparent to-transparent" />
         <div className="absolute inset-0 adinkra-dots opacity-30" />
         <div className="absolute left-0 top-0 bottom-0 w-1 zambian-stripe opacity-60" />
