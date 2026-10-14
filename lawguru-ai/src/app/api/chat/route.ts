@@ -72,6 +72,9 @@ Guidelines:
         temperature: 0.3,
         max_tokens: 2048,
         reasoning: { enabled: false },
+        // Disable chain-of-thought for reasoning models (e.g. NVIDIA
+        // Nemotron). Ignored by providers that don't know the field.
+        chat_template_kwargs: { enable_thinking: false },
       }),
     });
 

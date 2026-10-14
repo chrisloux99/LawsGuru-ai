@@ -171,55 +171,30 @@ export function useChat() {
           content: m.content,
         }));
 
-        const apiBase = process.env.NEXT_PUBLIC_LLM_API_BASE || "http://localhost:11434/v1";
-        const apiKey = process.env.NEXT_PUBLIC_LLM_API_KEY || "";
-        const model = process.env.NEXT_PUBLIC_LLM_MODEL || "mimo-v2.5-pro";
-
-        const systemPrompt = `You are LawGuru AI, an expert legal research assistant specializing in Zambian law. You analyze legal questions using the IRAC framework.
-
-For every legal question, you MUST structure your response using these four sections with markdown headers:
-
-## Issue
-Clearly identify the legal question or dispute.
-
-## Rule
-Identify and explain the relevant legal principles, statutes, and case law.
-
-## Application
-Analyze how the rules apply to the specific facts.
-
-## Conclusion
-Provide a clear, reasoned legal conclusion.
-
-Guidelines:
-- Be precise with legal terminology
-- Maintain a professional, objective tone
-- Reference Zambian statutes, case law, and constitutional provisions where relevant`;
-
-        const messages = [
-          { role: "system", content: systemPrompt },
-          ...history,
-          { role: "user", content: content.trim() },
-        ];
-
-        const response = await fetch(`${apiBase}/chat/completions`, {
+        // Route through the server-side proxy so the LLM API key
+        // never reaches the browser.
+        const response = await fetch("/api/chat", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
           },
           body: JSON.stringify({
-            model,
-            messages,
-            stream: true,
-            temperature: 0.3,
-            max_tokens: 2048,
-            reasoning: { enabled: false },
+            query: content.trim(),
+            history,
           }),
           signal: abortController.signal,
         });
 
-        if (!response.ok) throw new Error(`LLM API error: ${response.status}`);
+        if (!response.ok) {
+          let message = `Chat request failed: ${response.status}`;
+          try {
+            const errData = await response.json();
+            if (errData?.error) message = errData.error;
+          } catch {
+            // keep default message
+          }
+          throw new Error(message);
+        }
 
         const assistantMsg: ChatMessage = {
           id: generateId(),

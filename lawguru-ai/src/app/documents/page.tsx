@@ -22,6 +22,7 @@ import { DocumentCardSkeleton } from "@/components/ui/Skeleton";
 import EmptyState from "@/components/ui/EmptyState";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import FileUploadZone from "@/components/documents/FileUploadZone";
+import LocalFolderCard from "@/components/documents/LocalFolderCard";
 import GoogleDriveCard from "@/components/documents/GoogleDriveCard";
 import type { IndexedDocument, IndexStatus } from "@/types";
 
@@ -138,8 +139,8 @@ export default function DocumentsPage() {
               Document Library
             </h1>
             <p className="text-earth-400 font-body">
-              Upload documents from your computer or connect Google Drive to
-              build your Zambian legal knowledge base.
+              Upload documents, index a folder from this machine, or connect
+              Google Drive to build your Zambian legal knowledge base.
             </p>
           </div>
 
@@ -161,6 +162,11 @@ export default function DocumentsPage() {
               </div>
               <FileUploadZone onUploadComplete={fetchDocuments} />
             </Card>
+          </div>
+
+          {/* Local Folder Indexing (no Google Drive required) */}
+          <div className="animate-fade-in-up delay-1 mb-8">
+            <LocalFolderCard onSyncComplete={fetchDocuments} />
           </div>
 
           {/* Google Drive Connection */}
@@ -286,7 +292,7 @@ export default function DocumentsPage() {
               <EmptyState
                 icon={FaFolderOpen}
                 title="No documents indexed yet"
-                description="Upload files from your computer or connect Google Drive to start building your Zambian legal knowledge base."
+                description="Upload files, index a local folder, or connect Google Drive to start building your Zambian legal knowledge base."
               />
             ) : (
               <div className="space-y-3">
